@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.happyjob.study.repository.usermgr.UsermgrreactMapper">
+
+    <!-- 사용자관리 목록 조회 -->
+    <select id = "userListreact" parameterType="java.util.Map" resultType = "kr.happyjob.study.vo.usermgr.UserModel">
+        /*kr.happyjob.study.repository.usermgr.UsermgrreactMapper.userListreact*/
+        SELECT
+        ui.loginID
+        , ui.user_type
+        , userdc.detail_name as user_type_name
+        , ui.name
+        , ui.password
+        , ui.sex
+        , ui.hp
+        , ui.email
+        , ui.zipcd
+        , ui.addr
+        , ui.dtladdr
+        , DATE_FORMAT( ui.regdate , '%Y-%m-%d' ) as regdate
+        , ui.loc
+        , ui.birthday
+        , ui.filename
+        , ui.logicalpath
+        , ui.filesize
+        , ui.fileext
+        , dc.detail_name as locname
+        FROM tb_userinfo ui
+        left outer join tb_detail_code dc on dc.group_code = 'areacd' and dc.detail_code = ui.loc
+        inner join tb_detail_code userdc on userdc.group_code = 'usertype' and userdc.detail_code = ui.user_type
+        <where>
+            <if test ="(searchword != null) and (!searchword.equals(''))">
+                <choose>
+                    <when test="searchsel eq 'loginid'.toString()">
+                        and ui.loginID Like CONCAT('%', #{searchword}, '%')
+                    </when>
+                    <when test="searchsel eq 'name'.toString()">
+                        and ui.name LIKE CONCAT('%', #{searchword}, '%')
+                    </when>
+                    <otherwise>
+                        AND (
+                        ui.loginID Like CONCAT('%', #{searchword}, '%')
+                        OR ui.name LIKE CONCAT('%', #{searchword}, '%')
+                        )
+                    </otherwise>
+                </choose>
+            </if>
+            <if test ="(searchtype != null) and (!searchtype.equals(''))">
+                and ui.user_type = #{searchtype}
+            </if>
+        </where>
+        ORDER BY ui.regdate desc
+        LIMIT #{startpoint}, #{pagesize}
+    </select>
+
+
+    <!-- 사용자관리 총 갯수 조회 -->
+    <select id="userListreactcnt" parameterType="java.util.Map"  resultType="int">
+        /*kr.happyjob.study.repository.usermgr.UsermgrreactMapper.userListreactcnt*/
+        SELECT COUNT(*)
+        FROM tb_userinfo ui
+        left outer join tb_detail_code dc on dc.group_code = 'areacd' and dc.detail_code = ui.loc
+        <where>
+            <if test ="(searchword != null) and (!searchword.equals(''))">
+                <choose>
+                    <when test="searchsel eq 'loginid'.toString()">
+                        and ui.loginID Like CONCAT('%', #{searchword}, '%')
+                    </when>
+                    <when test="searchsel eq 'name'.toString()">
+                        and ui.name LIKE CONCAT('%', #{searchword}, '%')
+                    </when>
+                    <otherwise>
+                        AND (
+                        ui.loginID Like CONCAT('%', #{searchword}, '%')
+                        OR ui.name LIKE CONCAT('%', #{searchword}, '%')
+                        )
+                    </otherwise>
+                </choose>
+            </if>
+            <if test ="(searchtype != null) and (!searchtype.equals(''))">
+                and ui.user_type = #{searchtype}
+            </if>
+        </where>
+    </select>
+
+    <select id = "selectuser" parameterType="java.util.Map" resultType = "kr.happyjob.study.vo.usermgr.UserModel">
+        /*kr.happyjob.study.repository.usermgr.UsermgrreactMapper.userListreact*/
+        SELECT
+        ui.loginID
+        , ui.user_type
+        , userdc.detail_name as user_type_name
+        , ui.name
+        , ui.password
+        , ui.sex
+        , ui.hp
+        , ui.email
+        , ui.zipcd
+        , ui.addr
+        , ui.dtladdr
+        , DATE_FORMAT( ui.regdate , '%Y-%m-%d' ) as regdate
+        , ui.loc
+        , ui.birthday
+        , ui.filename
+        <if test="imgread eq 'Y'.toString()">
+            , ui.pygicalpath
+        </if>
+        , ui.logicalpath
+        , ui.filesize
+        , ui.fileext
+        , dc.detail_name as locname
+        FROM tb_userinfo ui
+        left outer join tb_detail_code dc on dc.group_code = 'areacd' and dc.detail_code = ui.loc
+        inner join tb_detail_code userdc on userdc.group_code = 'usertype' and userdc.detail_code = ui.user_type
+        where ui.loginID = #{loginID}
+    </select>
+
+    <insert id="insertuser">
+        insert into tb_userinfo
+        (
+        loginID
+        , user_type
+        , name
+        , password
+        , sex
+        , hp
+        , email
+        , zipcd
+        , addr
+        , dtladdr
+        , regdate
+        , loc
+        , birthday
+        <if test="fileexist eq 'Y'.toString()">
+            , filename
+            , logicalpath
+            , pygicalpath
+            , filesize
+            , fileext
+        </if>
+        ) values (
+        #{loginID}
+        , #{user_type}
+        , #{name}
+        , #{password}
+        , #{sex}
+        , #{hp}
+        , #{email}
+        , #{zipcd}
+        , #{addr}
+        , #{dtladdr}
+        , now()
+        , #{loc}
+        , #{birthday}
+        <if test="fileexist eq 'Y'.toString()">
+            , #{fileinfo.file_nm}
+            , #{fileinfo.vrfile_loc}
+            , #{fileinfo.file_loc}
+            , #{fileinfo.file_size}
+            , #{fileinfo.fileExtension}
+        </if>
+        )
+    </insert>
+
+    <update id="updateuser">
+        update tb_userinfo
+        set user_type = #{user_type}
+        , name = #{name}
+        , password = #{password}
+        , sex = #{sex}
+        , hp = #{hp}
+        , email = #{email}
+        , zipcd = #{zipcd}
+        , addr = #{addr}
+        , dtladdr = #{dtladdr}
+        , regdate = now()
+        , loc = #{loc}
+        , birthday = #{birthday}
+        <if test="fileexist eq 'Y'.toString()">
+            , filename = #{fileinfo.file_nm}
+            , logicalpath = #{fileinfo.vrfile_loc}
+            , pygicalpath = #{fileinfo.file_loc}
+            , filesize = #{fileinfo.file_size}
+            , fileext = #{fileinfo.fileExtension}
+        </if>
+        <if test="imgecheck eq 'N'.toString()">
+            , filename = ''
+            , logicalpath = ''
+            , pygicalpath = ''
+            , filesize = 0
+            , fileext = ''
+        </if>
+        where loginID = #{loginID}
+    </update>
+
+    <delete id="deleteuser">
+        delete from tb_userinfo
+        where loginID = #{loginID}
+    </delete>
+
+
+
+    <select id="dupcheck" parameterType="java.util.Map"  resultType="int">
+        select count(*) as cnt
+        from tb_userinfo
+        where loginID = #{loginID}
+    </select>
+
+
+
+</mapper>

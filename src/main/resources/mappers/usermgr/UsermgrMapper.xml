@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.happyjob.study.repository.usermgr.UsermgrMapper">
+	
+   	<!-- 사용자관리 목록 조회 -->
+	<select id = "userList" parameterType="java.util.Map" resultType = "kr.happyjob.study.vo.usermgr.UserModel">
+        /*kr.happyjob.study.repository.usermgr.UsermgrMapper.userList*/
+		SELECT
+			   ui.loginID
+              ,ui.user_type    
+              ,ui.name
+              ,ui.password    
+              ,ui.sex          
+              ,ui.hp           
+              ,ui.email      
+              ,ui.regdate      
+              ,ui.loc   
+              ,dc.detail_name as locname   
+              ,ui.birthday   
+              ,ui.zipcd  
+              ,ui.addr
+              ,ui.dtladdr
+		FROM tb_userinfo ui
+			 left outer join tb_detail_code dc on dc.group_code = 'areacd' and dc.detail_code = ui.loc
+		<where>
+			<if test ="(susertype != null) and (!susertype.equals(''))">
+			    and ui.user_type = #{susertype}
+			</if>
+			<if test ="(sname != null) and (!sname.equals(''))">
+			    and ui.name like concat('%',#{sname},'%')
+			</if>
+			<if test ="(searchloginID != null) and (!searchloginID.equals(''))">
+			    and ui.loginID like concat('%',#{searchloginID},'%')
+			</if>
+			<if test ="(ssdate != null) and (!ssdate.equals(''))">
+			    and ui.regdate   <![CDATA[>=]]> STR_TO_DATE(#{ssdate}, '%Y-%m-%d')   
+			</if>			
+			<if test ="(sedate != null) and (!sedate.equals(''))">
+			    and ui.regdate   <![CDATA[<=]]> DATE_ADD(STR_TO_DATE(#{sedate}, '%Y-%m-%d'), INTERVAL 1 DAY)    
+			</if>
+		</where>
+		 ORDER BY loginID
+		 LIMIT #{pageIndex}, #{pageSize}
+	</select>
+	
+		
+	<!-- 사용자관리 총 갯수 조회 -->
+	<select id="userCnt" parameterType="java.util.Map"  resultType="int">
+		/*kr.happyjob.study.repository.usermgr.UsermgrMapper.userCnt*/
+		SELECT COUNT(*)
+		FROM tb_userinfo ui
+			 left outer join tb_detail_code dc on dc.group_code = 'areacd' and dc.detail_code = ui.loc
+		<where>
+			<if test ="(susertype != null) and (!susertype.equals(''))">
+			    and ui.user_type = #{susertype}
+			</if>
+			<if test ="(sname != null) and (!sname.equals(''))">
+			    and ui.name like concat('%',#{sname},'%')
+			</if>
+			<if test ="(searchloginID != null) and (!searchloginID.equals(''))">
+			    and ui.loginID like concat('%',#{searchloginID},'%')
+			</if>
+			<if test ="(ssdate != null) and (!ssdate.equals(''))">
+			    and ui.regdate   <![CDATA[>=]]> STR_TO_DATE(#{ssdate}, '%Y-%m-%d')   
+			</if>			
+			<if test ="(sedate != null) and (!sedate.equals(''))">
+			    and ui.regdate   <![CDATA[<=]]> DATE_ADD(STR_TO_DATE(#{sedate}, '%Y-%m-%d'), INTERVAL 1 DAY)    
+			</if>
+		</where>
+	</select>	
+		
+	<select id = "selectuserinfo" parameterType="java.util.Map" resultType = "kr.happyjob.study.vo.usermgr.UserModel">
+        /*kr.happyjob.study.repository.usermgr.UsermgrMapper.userList*/
+		SELECT
+			   ui.loginID
+              ,ui.user_type    
+              ,ui.name
+              ,ui.password    
+              ,ui.sex          
+              ,ui.hp           
+              ,ui.email      
+              ,ui.regdate      
+              ,ui.loc    
+              ,dc.detail_name as locname   
+              ,ui.birthday     
+		FROM tb_userinfo ui
+			 left outer join tb_detail_code dc on dc.group_code = 'areacd' and dc.detail_code = ui.loc
+	   WHERE ui.loginID = #{loginid}
+	</select>
+	
+	<insert id="insertuserinfo" parameterType="java.util.Map">
+		/*kr.happyjob.study.repository.usermgr.UsermgrMapper.insertuserinfo*/
+		insert into tb_userinfo 
+		            (
+		              loginID,
+                      password,
+                      name,
+                      user_type,
+                      sex,
+                      hp,
+                      loc,
+                      birthday,
+                      regdate,
+                      zipcd, 
+                      addr, 
+                      dtladdr 
+                    ) values (
+                      #{loginID},
+                      #{password},
+                      #{username},
+                      #{user_type},
+                      #{sex},
+                      #{hp},
+                      #{loc},
+                      #{birthday},
+                      now(),
+                      #{zipcd},
+                      #{addr},
+                      #{dtladdr}
+                    )  
+		
+	</insert>
+	
+	<update id="updateuserinfo" parameterType="java.util.Map">
+		/*kr.happyjob.study.repository.usermgr.UsermgrMapper.updateuserinfo*/
+		update tb_userinfo
+		   set password = #{password}
+              ,name = #{username}
+              ,user_type = #{user_type}
+              ,sex = #{sex}
+              ,hp = #{hp}
+              ,loc = #{loc}
+              ,birthday = #{birthday}
+              ,regdate = now()
+              ,zipcd = #{zipcd}
+              ,addr = #{addr}
+              ,dtladdr = #{dtladdr}
+         where loginID = #{loginID}	
+    </update> 
+    
+    <delete id="deleteuserinfo" parameterType="java.util.Map">
+		/*kr.happyjob.study.repository.usermgr.UsermgrMapper.deleteuserinfo*/
+		delete from tb_userinfo
+		 where loginID = #{loginID}	
+    </delete>
+    
+    <select id="loginidcheck" parameterType="java.util.Map">
+        /*kr.happyjob.study.repository.usermgr.UsermgrMapper.loginidcheck*/
+        select count(*)
+          from tb_userinfo
+         where loginID = #{loginID}
+    </select>
+		
+		
+		
+		
+    
+</mapper>
