@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.happyjob.study.repository.system.CategoryMapper">
+    <select id="searchCategories" parameterType="java.util.Map" resultType="kr.happyjob.study.vo.system.CategoryModel">
+        /*kr.happyjob.study.repository.system.CategoryMapper.searchCategories*/
+        SELECT
+            @ROWNUM:=@ROWNUM+1 as categoryNumber,
+            category_name as categoryName,
+            SUM(IFNULL(quantity, 0)) as categoryQuantity
+        FROM
+            tb_category_code as C
+        LEFT JOIN
+            tb_product_info as P
+        ON
+            C.category_code = P.category_code
+        CROSS JOIN
+            (SELECT @ROWNUM:=0) r
+        <where>
+            <if test="searchByName != null and searchByName != ('')">
+                AND category_name LIKE CONCAT('%', #{searchByName}, '%')
+            </if>
+        </where>
+        GROUP BY category_name
+        ORDER BY categoryNumber
+        LIMIT #{pageIndex}, #{pageSize}
+    </select>
+
+    <select id="searchCategoriesCount" parameterType="java.util.Map" resultType="int">
+        /*kr.happyjob.study.repository.system.CategoryMapper.searchCategoriesCount*/
+        SELECT
+            COUNT(*)
+        FROM
+            tb_category_code as C
+        <where>
+            <if test="searchByName != null and searchByName != ('')">
+                AND category_name LIKE CONCAT('%', #{searchByName}, '%')
+            </if>
+        </where>
+    </select>
+
+    <insert id="saveDetailCode">
+        /*kr.happyjob.study.repository.system.CategoryMapper.saveDetailCode*/
+        INSERT INTO
+            tb_detail_code (
+                group_code
+               ,detail_code
+               ,detail_name
+               ,use_yn
+        ) VALUES (
+            'equip',
+            #{categoryCode},
+            #{categoryName},
+            'Y'
+        )
+    </insert>
+
+    <insert id="saveCategory">
+        /*kr.happyjob.study.repository.system.CategoryMapper.saveCategory*/
+        INSERT INTO
+            tb_category_code(
+                category_code
+                ,category_name
+                ,regist_date
+                ,content
+        ) VALUES (
+                #{categoryCode}
+                ,#{categoryName}
+                ,#{registerDate}
+                ,#{categoryContent}
+        )
+    </insert>
+
+    <select id="duplicateCheck" parameterType="java.util.Map" resultType="int">
+        SELECT
+            COUNT(*)
+        FROM
+            tb_detail_code
+        WHERE
+            group_code = "equip"
+        AND
+            (
+                detail_code = #{categoryCode}
+                OR
+                detail_name = #{categoryName}
+            )
+
+    </select>
+</mapper>
