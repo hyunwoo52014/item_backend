@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@MapperScan(basePackageClasses = LoginApplication.class)
+@MapperScan("kr.happyjob.study.repository")
 public class LoginApplication {
 
 	public static void main(String[] args) {

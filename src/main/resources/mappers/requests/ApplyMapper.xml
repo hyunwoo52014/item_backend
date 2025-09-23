@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.happyjob.study.repository.requests.ApplyMapper">
+
+    <!-- 사용신청 목록 조회 -->
+    <select id="applyList" parameterType="map" resultType="kr.happyjob.study.vo.requests.ApplyModel">
+        /* ApplyMapper.applyList */
+        SELECT
+        pd.product_detail_code,
+        pi.category_code,
+        pi.product_name,
+        pd.product_state,
+        ui.name,
+        uh.rental_date   AS rentalDate,
+        uh.return_date   AS returnDate,
+        pd.order_reason,
+        cc.category_name
+        FROM tb_product_detail pd
+        JOIN tb_product_info pi ON pi.product_no = pd.product_no
+        LEFT JOIN tb_category_code cc ON cc.category_code = pi.category_code
+        LEFT JOIN (
+        SELECT x.*
+        FROM tb_use_history x
+        JOIN (
+        SELECT product_detail_code, MAX(rental_date) AS max_rental_date
+        FROM tb_use_history
+        GROUP BY product_detail_code
+        ) last ON last.product_detail_code = x.product_detail_code
+        AND last.max_rental_date = x.rental_date
+        ) uh ON uh.product_detail_code = pd.product_detail_code
+        LEFT JOIN tb_userinfo ui ON ui.loginID = uh.loginID
+        <where>
+            <if test="searchsel != null and searchsel != '' and searchword != null and searchword != ''">
+                <choose>
+                    <when test="searchsel == 'product_name'">
+                        AND pi.product_name LIKE CONCAT('%', #{searchword}, '%')
+                    </when>
+                    <when test="searchsel == 'category_name'">
+                        AND cc.category_name LIKE CONCAT('%', #{searchword}, '%')
+                    </when>
+                    <when test="searchsel == 'product_state'">
+                        AND pd.product_state = #{searchword}
+                    </when>
+                </choose>
+            </if>
+        </where>
+        ORDER BY COALESCE(uh.rental_date, '1000-01-01') DESC,
+        pd.product_detail_code DESC
+        LIMIT #{pageIndex}, #{pageSize}
+    </select>
+
+    <!-- 목록 개수 -->
+    <select id="applyCnt" parameterType="map" resultType="int">
+        SELECT COUNT(DISTINCT pd.product_detail_code)
+        FROM tb_product_detail pd
+        JOIN tb_product_info pi ON pi.product_no = pd.product_no
+        LEFT JOIN tb_category_code cc ON cc.category_code = pi.category_code
+        <where>
+            <if test="searchsel != null and searchsel != '' and searchword != null and searchword != ''">
+                <choose>
+                    <when test="searchsel == 'product_name'">
+                        AND pi.product_name LIKE CONCAT('%', #{searchword}, '%')
+                    </when>
+                    <when test="searchsel == 'category_name'">
+                        AND cc.category_name LIKE CONCAT('%', #{searchword}, '%')
+                    </when>
+                    <when test="searchsel == 'product_state'">
+                        AND pd.product_state = #{searchword}
+                    </when>
+                </choose>
+            </if>
+        </where>
+    </select>
+
+    <!-- 상세 조회 -->
+    <select id="applyDetail" parameterType="map" resultType="kr.happyjob.study.vo.requests.ApplyModel">
+        SELECT
+            pd.product_detail_code,
+            pi.category_code,
+            pi.product_name,
+            pd.product_state,
+            ui.name,
+            pd.order_date     AS orderDate,
+            pd.rental_date    AS rentalDate,
+            pd.order_reason   AS order_reason,
+            cc.category_name
+        FROM tb_product_detail pd
+                 JOIN tb_product_info pi ON pi.product_no = pd.product_no
+                 LEFT JOIN tb_category_code cc ON cc.category_code = pi.category_code
+                 LEFT JOIN tb_userinfo ui ON ui.loginID = pd.loginID
+        WHERE pd.product_detail_code = #{product_detail_code}
+        ORDER BY pd.order_date DESC
+            LIMIT 1
+    </select>
+
+    <!-- 등록 -->
+    <insert id="applyReg" parameterType="map">
+        INSERT INTO tb_use_history (
+            category_code, product_detail_code, rental_date, return_date, name, loginID
+        ) VALUES (
+                     #{category_code}, #{product_detail_code}, NOW(), NULL, #{name}, #{loginID}
+                 )
+    </insert>
+
+    <!-- 반납 -->
+    <update id="applyReturn" parameterType="map">
+        UPDATE tb_product_detail
+        SET product_state = 'R', return_date = NOW()
+        WHERE product_detail_code = #{product_detail_code}
+    </update>
+
+    <!-- 취소 -->
+    <delete id="applyCancel" parameterType="map">
+        DELETE FROM tb_use_history
+        WHERE product_detail_code = #{product_detail_code}
+            ORDER BY rental_date DESC
+        LIMIT 1
+    </delete>
+
+</mapper>
