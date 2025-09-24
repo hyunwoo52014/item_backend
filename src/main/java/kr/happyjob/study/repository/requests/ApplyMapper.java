@@ -17,6 +17,8 @@ public interface ApplyMapper {
     int applyReturn(Map<String, Object> paramMap) throws Exception;
 
     int applyCancel(Map<String, Object> paramMap) throws Exception;
+
+    List<Map<String, Object>> getCategories() throws Exception;
 }
 
 

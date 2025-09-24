@@ -8,29 +8,15 @@
     <select id="applyList" parameterType="map" resultType="kr.happyjob.study.vo.requests.ApplyModel">
         /* ApplyMapper.applyList */
         SELECT
-        pd.product_detail_code,
-        pi.category_code,
-        pi.product_name,
-        pd.product_state,
-        ui.name,
-        uh.rental_date   AS rentalDate,
-        uh.return_date   AS returnDate,
-        pd.order_reason,
-        cc.category_name
+            pd.product_detail_code,
+            pi.category_code,
+            pi.product_name,
+            pd.product_state,
+            COALESCE(cc.category_name, pi.category_code) as category_name,
+            pd.order_reason
         FROM tb_product_detail pd
         JOIN tb_product_info pi ON pi.product_no = pd.product_no
         LEFT JOIN tb_category_code cc ON cc.category_code = pi.category_code
-        LEFT JOIN (
-        SELECT x.*
-        FROM tb_use_history x
-        JOIN (
-        SELECT product_detail_code, MAX(rental_date) AS max_rental_date
-        FROM tb_use_history
-        GROUP BY product_detail_code
-        ) last ON last.product_detail_code = x.product_detail_code
-        AND last.max_rental_date = x.rental_date
-        ) uh ON uh.product_detail_code = pd.product_detail_code
-        LEFT JOIN tb_userinfo ui ON ui.loginID = uh.loginID
         <where>
             <if test="searchsel != null and searchsel != '' and searchword != null and searchword != ''">
                 <choose>
@@ -38,7 +24,7 @@
                         AND pi.product_name LIKE CONCAT('%', #{searchword}, '%')
                     </when>
                     <when test="searchsel == 'category_name'">
-                        AND cc.category_name LIKE CONCAT('%', #{searchword}, '%')
+                        AND (cc.category_name LIKE CONCAT('%', #{searchword}, '%') OR pi.category_code = #{searchword})
                     </when>
                     <when test="searchsel == 'product_state'">
                         AND pd.product_state = #{searchword}
@@ -46,14 +32,13 @@
                 </choose>
             </if>
         </where>
-        ORDER BY COALESCE(uh.rental_date, '1000-01-01') DESC,
-        pd.product_detail_code DESC
+        ORDER BY pd.product_detail_code DESC
         LIMIT #{pageIndex}, #{pageSize}
     </select>
 
     <!-- 목록 개수 -->
     <select id="applyCnt" parameterType="map" resultType="int">
-        SELECT COUNT(DISTINCT pd.product_detail_code)
+        SELECT COUNT(pd.product_detail_code)
         FROM tb_product_detail pd
         JOIN tb_product_info pi ON pi.product_no = pd.product_no
         LEFT JOIN tb_category_code cc ON cc.category_code = pi.category_code
@@ -64,7 +49,7 @@
                         AND pi.product_name LIKE CONCAT('%', #{searchword}, '%')
                     </when>
                     <when test="searchsel == 'category_name'">
-                        AND cc.category_name LIKE CONCAT('%', #{searchword}, '%')
+                        AND (cc.category_name LIKE CONCAT('%', #{searchword}, '%') OR pi.category_code = #{searchword})
                     </when>
                     <when test="searchsel == 'product_state'">
                         AND pd.product_state = #{searchword}
@@ -118,5 +103,15 @@
             ORDER BY rental_date DESC
         LIMIT 1
     </delete>
+
+    <!-- 카테고리 조회 -->
+    <select id="getCategories" resultType="map">
+        /* ApplyMapper.getCategories */
+        SELECT
+            category_code,
+            category_name
+        FROM tb_category_code
+        ORDER BY category_code ASC
+    </select>
 
 </mapper>

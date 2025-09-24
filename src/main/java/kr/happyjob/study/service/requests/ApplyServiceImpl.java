@@ -41,4 +41,9 @@ public class ApplyServiceImpl implements ApplyService {
     public int applyCancel(Map<String, Object> paramMap) throws Exception {
         return applyMapper.applyCancel(paramMap);
     }
+
+    @Override
+    public List<Map<String, Object>> getCategories() throws Exception {
+        return applyMapper.getCategories();
+    }
 }

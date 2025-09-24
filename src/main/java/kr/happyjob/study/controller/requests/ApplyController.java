@@ -23,7 +23,7 @@ public class ApplyController {
     private final Logger logger = LogManager.getLogger(this.getClass());
 
     /** 리스트 조회 (React 호출) */
-    @GetMapping("applyData")
+    @GetMapping("/applyData")
     @ResponseBody
     public Map<String, Object> applyData(@RequestParam Map<String, Object> paramMap) {
         Map<String, Object> result = new HashMap<>();
@@ -38,8 +38,28 @@ public class ApplyController {
             paramMap.put("pageIndex", pageIndex);
             paramMap.put("pageSize", pageSize);
 
+            // Frontend 파라미터를 MyBatis 매퍼에서 사용하는 파라미터명으로 변환
+            String searchsel = (String) paramMap.get("searchsel");
+            String searchword = (String) paramMap.get("searchword");
+
+            // 검색 조건을 그대로 MyBatis로 전달 (MyBatis에서 처리)
+            paramMap.put("searchsel", searchsel);
+            paramMap.put("searchword", searchword);
+
+            // 디버깅 로그 추가
+            System.out.println("=== 검색 파라미터 ===");
+            System.out.println("searchsel: " + searchsel);
+            System.out.println("searchword: " + searchword);
+            System.out.println("currentPage: " + currentPage);
+            System.out.println("pageSize: " + pageSize);
+            System.out.println("pageIndex: " + pageIndex);
+
             List<ApplyModel> applyList = applyService.applyList(paramMap);
             int applyCnt = applyService.applyCnt(paramMap);
+
+            System.out.println("=== 조회 결과 ===");
+            System.out.println("조회된 데이터 수: " + applyList.size());
+            System.out.println("전체 데이터 수: " + applyCnt);
 
             result.put("totalcnt", applyCnt);
             result.put("datalist", applyList);
@@ -48,6 +68,7 @@ public class ApplyController {
             result.put("totalcnt", 0);
             result.put("datalist", Collections.emptyList());
             System.out.println("applyData ERROR >>> " + e.getMessage());
+            e.printStackTrace();
         }
 
         return result;
@@ -82,6 +103,13 @@ public class ApplyController {
     public Map<String, Object> applyCancel(@RequestParam Map<String, Object> paramMap) throws Exception {
         int res = applyService.applyCancel(paramMap);
         return getResult(res, "취소 되었습니다.", "취소 실패");
+    }
+
+    /** 카테고리 목록 조회 */
+    @GetMapping("/categories")
+    @ResponseBody
+    public List<Map<String, Object>> getCategories() throws Exception {
+        return applyService.getCategories();
     }
 
     /** 공통 응답 */
