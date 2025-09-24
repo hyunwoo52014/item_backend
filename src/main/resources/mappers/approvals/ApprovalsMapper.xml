@@ -4,7 +4,7 @@
 
 <!-- (관리자) 신청/반납 > 결제 부분 : 전체 목록 select   -->
 <select id="getApprovalsList" resultType="kr.happyjob.study.vo.approvals.ApprovalsVO">
-    select ui.name, pinfo.product_name,pd.order_date, pd.product_state
+    select pd.category_code,pd.product_detail_code,ui.name, pinfo.product_name,pd.order_date, pd.product_state
     from tb_product_detail pd
     left outer join tb_userinfo ui on pd.loginID = ui.loginID
     left outer join tb_product_info pinfo on pd.product_no = pinfo.product_no

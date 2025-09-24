@@ -5,6 +5,9 @@ import java.sql.Date;
 
 public class ApprovalsVO {
 
+    private String category_code;
+    private String product_detail_code;
+
     private String name; // 사용자 이름
     private String product_name; // 제품 이름
 
@@ -14,6 +17,22 @@ public class ApprovalsVO {
 
     private String product_state; // 제품 상태
 
+
+    public String getCategory_code() {
+        return category_code;
+    }
+
+    public void setCategory_code(String category_code) {
+        this.category_code = category_code;
+    }
+
+    public String getProduct_detail_code() {
+        return product_detail_code;
+    }
+
+    public void setProduct_detail_code(String product_detail_code) {
+        this.product_detail_code = product_detail_code;
+    }
 
     public String getName() {
         return name;
@@ -66,7 +85,9 @@ public class ApprovalsVO {
     @Override
     public String toString() {
         return "ApprovalsVO{" +
-                "name='" + name + '\'' +
+                "category_code='" + category_code + '\'' +
+                ", product_detail_code='" + product_detail_code + '\'' +
+                ", name='" + name + '\'' +
                 ", product_name='" + product_name + '\'' +
                 ", order_date=" + order_date +
                 ", rental_date=" + rental_date +
@@ -75,3 +96,4 @@ public class ApprovalsVO {
                 '}';
     }
 }//end class
+
