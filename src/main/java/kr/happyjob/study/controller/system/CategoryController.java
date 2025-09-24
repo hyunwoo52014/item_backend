@@ -2,6 +2,8 @@ package kr.happyjob.study.controller.system;
 
 import kr.happyjob.study.service.system.CategoryService;
 import kr.happyjob.study.vo.system.CategoryModel;
+import kr.happyjob.study.vo.system.RemainDataModel;
+import kr.happyjob.study.vo.system.SelectedCategoryModel;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,24 +62,62 @@ public class CategoryController {
         return resultMap;
     }
 
+    @PostMapping("/searchSelectedCategory")
+    @ResponseBody
+    public Map<String, Object> searchSelectedCategory(@RequestParam Map<String, Object> paramMap) throws Exception{
+        logger.info(" + Start CategoryController.searchSelectedCategory");
+        logger.info("   - ParamMap : " + paramMap);
+        Map<String, Object> resultMap = new HashMap<>();
+        try {
+            SelectedCategoryModel selectedCategory = categoryService.searchSelectedCategory(paramMap);
+            resultMap.put("selectedCategory", selectedCategory);
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            logger.info(" + End CategoryController.searchSelectedCategory");
+        }
+        return resultMap;
+    }
+
     @PostMapping("/saveCategory")
     @ResponseBody
     public Map<String, Object> saveCategory(@RequestParam Map<String, Object> paramMap) {
         logger.info(" + Start CategoryController.saveCategory");
         logger.info("   - ParamMap : " + paramMap);
-
+        Map<String, Object> saveResult = new HashMap<>();
         Map<String, Object> resultMap = new HashMap<>();
-        Map<String, Object> saveResult = categoryService.saveCategory(paramMap);
 
-        if(saveResult.get("result").equals("Y")) {
-            resultMap.put("resultMsg", saveResult.get("resultMsg"));
-        } else {
-            resultMap.put("resultMsg", saveResult.get("resultMsg"));
+        if(((String)paramMap.get("state")).equals("I")) {
+            saveResult = categoryService.saveCategory(paramMap);
         }
+        if(((String)paramMap.get("state")).equals("U")) {
+            saveResult = categoryService.updateCategory(paramMap);
+        }
+
+        resultMap.put("resultMsg", saveResult.get("resultMsg"));
 
         logger.info(" + End CategoryController.saveCategory");
 
         return resultMap;
+    }
+
+    @PostMapping("/deleteCategory")
+    @ResponseBody
+    public Map<String, Object> deleteCategory(@RequestParam Map<String, Object> paramMap) {
+        logger.info(" + Start CategoryController.deleteCategory");
+        logger.info("   - ParamMap : " + paramMap);
+
+        try {
+            Map<String, Object> resultMap = new HashMap<>();
+            Map<String, Object> deleteResult = categoryService.deleteCategory(paramMap);
+            resultMap.put("result", deleteResult.get("result"));
+            resultMap.put("resultMsg", deleteResult.get("resultMsg"));
+            return resultMap;
+        } catch (Exception e) {
+            throw new RuntimeException("삭제중 오류 발생!!", e);
+        } finally {
+            logger.info(" + End CategoryController.deleteCategory");
+        }
     }
 
     @PostMapping("/duplicateCheck")
@@ -102,5 +142,26 @@ public class CategoryController {
         resultMap.put("result", result);
         logger.info(" + End CategoryController.duplicateCheck");
         return resultMap;
+    }
+
+    @PostMapping("/searchRemainData")
+    @ResponseBody
+    public Map<String, Object> searchRemainData(@RequestParam Map<String, Object> paramMap) {
+        logger.info(" + Start CategoryController.searchRemainData");
+        logger.info("   - ParamMap : " + paramMap);
+
+        Map<String, Object> resultMap = new HashMap<>();
+
+        try {
+            List<RemainDataModel> remainDataList = categoryService.searchRemainData(paramMap);
+            int remainDataListCount = categoryService.searchRemainDataCount(paramMap);
+            resultMap.put("totalCount", remainDataListCount);
+            resultMap.put("remainDataList", remainDataList);
+            return resultMap;
+        } catch (Exception e) {
+            throw new RuntimeException("잔여 데이터 조회 컨트롤러에서 오류", e);
+        } finally {
+            logger.info(" + End CategoryController.searchRemainData");
+        }
     }
 }

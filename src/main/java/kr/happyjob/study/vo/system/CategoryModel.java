@@ -4,6 +4,15 @@ public class CategoryModel {
     private int categoryNumber;
     private String categoryName;
     private int categoryQuantity;
+    private String categoryCode;
+
+    public String getCategoryCode() {
+        return categoryCode;
+    }
+
+    public void setCategoryCode(String categoryCode) {
+        this.categoryCode = categoryCode;
+    }
 
     public int getCategoryNumber() {
         return categoryNumber;
@@ -28,4 +37,5 @@ public class CategoryModel {
     public void setCategoryQuantity(int categoryQuantity) {
         this.categoryQuantity = categoryQuantity;
     }
+
 }
