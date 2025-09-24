@@ -25,7 +25,7 @@ public class ApplyController {
     /** 리스트 조회 (React 호출) */
     @GetMapping("/applyData")
     @ResponseBody
-    public Map<String, Object> applyData(@RequestParam Map<String, Object> paramMap) {
+    public Map<String, Object> applyData(@RequestParam Map<String, Object> paramMap, HttpServletRequest request) {
         Map<String, Object> result = new HashMap<>();
 
         try {
@@ -46,6 +46,27 @@ public class ApplyController {
             paramMap.put("searchsel", searchsel);
             paramMap.put("searchword", searchword);
 
+            // 사용자 권한별 조회 제한 추가
+            String userLoginId = (String) paramMap.get("userLoginId");
+            String userType = (String) paramMap.get("userType");
+
+            // 권한별 접근 제한: admin이 아닌 경우 본인 신청 건만 조회
+            if (!"A".equals(userType) && !"admin".equals(userLoginId)) {
+                // 일반 사용자인 경우
+                if (userLoginId != null && !userLoginId.trim().isEmpty()) {
+                    paramMap.put("loginIdFilter", userLoginId); // 본인 신청 건만 필터링
+                    System.out.println("일반 사용자 조회 - loginId: " + userLoginId);
+                } else {
+                    // 로그인 정보가 없는 경우 빈 결과 반환
+                    result.put("totalcnt", 0);
+                    result.put("datalist", Collections.emptyList());
+                    return result;
+                }
+            } else {
+                // admin인 경우 모든 데이터 조회 가능
+                System.out.println("관리자 조회 - 모든 데이터 접근 가능");
+            }
+
             // 디버깅 로그 추가
             System.out.println("=== 검색 파라미터 ===");
             System.out.println("searchsel: " + searchsel);
@@ -53,6 +74,8 @@ public class ApplyController {
             System.out.println("currentPage: " + currentPage);
             System.out.println("pageSize: " + pageSize);
             System.out.println("pageIndex: " + pageIndex);
+            System.out.println("userLoginId: " + userLoginId);
+            System.out.println("userType: " + userType);
 
             List<ApplyModel> applyList = applyService.applyList(paramMap);
             int applyCnt = applyService.applyCnt(paramMap);

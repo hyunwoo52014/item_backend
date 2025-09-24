@@ -7,6 +7,8 @@ public class ApplyModel {
     private String product_name;
     private String product_state;
     private String name;
+    private String loginID;          // 신청자 로그인ID
+    private String applicant_name;   // DB에서 가져온 신청자 이름
 
     private String rentalDate;   // 대여일
     private String returnDate;   // 반납일
@@ -39,4 +41,10 @@ public class ApplyModel {
 
     public String getCategory_name() { return category_name; }
     public void setCategory_name(String category_name) { this.category_name = category_name; }
+
+    public String getLoginID() { return loginID; }
+    public void setLoginID(String loginID) { this.loginID = loginID; }
+
+    public String getApplicant_name() { return applicant_name; }
+    public void setApplicant_name(String applicant_name) { this.applicant_name = applicant_name; }
 }
