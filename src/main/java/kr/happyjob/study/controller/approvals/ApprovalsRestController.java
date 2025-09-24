@@ -23,11 +23,7 @@ public class ApprovalsRestController {
     @RequestMapping("/approvals/showList")
     public List<ApprovalsVO> showAllApprovalsList(){
 
-        List<ApprovalsVO> list=new ArrayList<ApprovalsVO>();
-
-        list=as.showApprovalsList();
-        logger.info("ApprovalsRestController.java -------- "+ list.toString());
-
+        List<ApprovalsVO> list=as.showApprovalsList();
         return list;
     }//end showAllApprocalsList
 

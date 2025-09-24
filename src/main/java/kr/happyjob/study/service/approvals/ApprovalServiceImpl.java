@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,9 +22,20 @@ public class ApprovalServiceImpl implements ApprovalsService{
      * @return ApprvalsVO
      */
     public List<ApprovalsVO> showApprovalsList(){
-        List<ApprovalsVO> list=new ArrayList<ApprovalsVO>();
-        list = am.getApprovalsList();
-        logger.info("ApprocalServiceImpl------------------"+list.toString());
+        List<ApprovalsVO> list=am.getApprovalsList();
+        String status=null;
+
+        for(int i=0; i<list.toArray().length; i++){
+            status=list.get(i).getProduct_state();
+            if(status.equals("O")){
+                list.get(i).setProduct_state("사용신청");
+            }else if(status.equals("R")){
+                list.get(i).setProduct_state("반납신청");
+            }//end if~else
+        }//end for
+
+        logger.info("ApprovalServiceImpl=====+++ "+list.toString());
+
         return list;
     }//end showApprovalsList
 
