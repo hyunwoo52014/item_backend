@@ -85,24 +85,51 @@ public class ApplyController {
     @PostMapping("applyReq")
     @ResponseBody
     public Map<String, Object> applyReq(@RequestParam Map<String, Object> paramMap) throws Exception {
-        int res = applyService.applyReg(paramMap);
-        return getResult(res, "신청되었습니다.", "신청 실패");
+        System.out.println("=== 사용신청 요청 ===");
+        System.out.println("전달받은 파라미터: " + paramMap);
+        try {
+            int res = applyService.applyReg(paramMap);
+            System.out.println("신청 결과: " + res);
+            return getResult(res, "신청되었습니다.", "신청 실패");
+        } catch (Exception e) {
+            System.out.println("신청 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     /** 반납 */
     @PostMapping("applyReturn")
     @ResponseBody
     public Map<String, Object> applyReturn(@RequestParam Map<String, Object> paramMap) throws Exception {
-        int res = applyService.applyReturn(paramMap);
-        return getResult(res, "반납 신청되었습니다.", "반납 신청 실패");
+        System.out.println("=== 반납신청 요청 ===");
+        System.out.println("전달받은 파라미터: " + paramMap);
+        try {
+            int res = applyService.applyReturn(paramMap);
+            System.out.println("반납 결과: " + res);
+            return getResult(res, "반납 신청되었습니다.", "반납 신청 실패");
+        } catch (Exception e) {
+            System.out.println("반납 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     /** 취소 */
     @PostMapping("applyCancel")
     @ResponseBody
     public Map<String, Object> applyCancel(@RequestParam Map<String, Object> paramMap) throws Exception {
-        int res = applyService.applyCancel(paramMap);
-        return getResult(res, "취소 되었습니다.", "취소 실패");
+        System.out.println("=== 신청취소 요청 ===");
+        System.out.println("전달받은 파라미터: " + paramMap);
+        try {
+            int res = applyService.applyCancel(paramMap);
+            System.out.println("취소 결과: " + res);
+            return getResult(res, "취소 되었습니다.", "취소 실패");
+        } catch (Exception e) {
+            System.out.println("취소 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     /** 카테고리 목록 조회 */

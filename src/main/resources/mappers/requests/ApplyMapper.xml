@@ -81,28 +81,35 @@
     </select>
 
     <!-- 등록 -->
-    <insert id="applyReg" parameterType="map">
-        INSERT INTO tb_use_history (
-            category_code, product_detail_code, rental_date, return_date, name, loginID
-        ) VALUES (
-                     #{category_code}, #{product_detail_code}, NOW(), NULL, #{name}, #{loginID}
-                 )
-    </insert>
+    <update id="applyReg" parameterType="map">
+        <!-- tb_product_detail 상태를 'O'(사용신청)로 업데이트 -->
+        UPDATE tb_product_detail
+        SET product_state = 'O',
+            order_date = NOW(),
+            order_reason = #{order_reason},
+            loginID = #{loginID}
+        WHERE product_detail_code = #{product_detail_code}
+    </update>
 
     <!-- 반납 -->
     <update id="applyReturn" parameterType="map">
         UPDATE tb_product_detail
-        SET product_state = 'R', return_date = NOW()
+        SET product_state = 'R',
+            return_date = NOW(),
+            order_reason = #{order_reason}
         WHERE product_detail_code = #{product_detail_code}
     </update>
 
     <!-- 취소 -->
-    <delete id="applyCancel" parameterType="map">
-        DELETE FROM tb_use_history
+    <update id="applyCancel" parameterType="map">
+        UPDATE tb_product_detail
+        SET product_state = 'N',
+            order_date = NULL,
+            return_date = NULL,
+            order_reason = #{order_reason},
+            loginID = NULL
         WHERE product_detail_code = #{product_detail_code}
-            ORDER BY rental_date DESC
-        LIMIT 1
-    </delete>
+    </update>
 
     <!-- 카테고리 조회 -->
     <select id="getCategories" resultType="map">
