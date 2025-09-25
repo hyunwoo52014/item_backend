@@ -6,11 +6,13 @@ import kr.happyjob.study.vo.approvals.ApprovalsVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class ApprovalsRestController {
@@ -23,8 +25,8 @@ public class ApprovalsRestController {
     @RequestMapping("/approvals/showList")
     public List<ApprovalsVO> showAllApprovalsList(){
 
-        List<ApprovalsVO> list=as.showApprovalsList();
-        return list;
+//        List<ApprovalsVO> list=as.showApprovalsList();
+        return as.showApprovalsList();
     }//end showAllApprocalsList
 
     /* 전체 신청 목록 갯수 출력 */

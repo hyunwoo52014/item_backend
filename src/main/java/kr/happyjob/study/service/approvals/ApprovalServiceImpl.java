@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ApprovalServiceImpl implements ApprovalsService{
@@ -34,8 +35,6 @@ public class ApprovalServiceImpl implements ApprovalsService{
             }//end if~else
         }//end for
 
-        logger.info("ApprovalServiceImpl=====+++ "+list.toString());
-
         return list;
     }//end showApprovalsList
 
@@ -49,6 +48,7 @@ public class ApprovalServiceImpl implements ApprovalsService{
         cnt = am.getTotalApprovalCnt();
         return cnt;
     }// end totalCnt
+
 
 
 

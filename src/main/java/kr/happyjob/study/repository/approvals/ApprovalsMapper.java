@@ -12,4 +12,5 @@ public interface ApprovalsMapper {
     public List<ApprovalsVO> getApprovalsList();
     /* (관리자) 신청/반납 > 결제 : Pagination을 위한 총 column 수 반환 */
     public int getTotalApprovalCnt();
+
 }//interface
