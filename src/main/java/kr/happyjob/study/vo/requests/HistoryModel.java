@@ -11,11 +11,11 @@ public class HistoryModel {
     String productName;
 
     // tb_product_detail로 부터
-    String order_reason;
+    String orderReason;
     String returnDate;
     String rentalDate;
-    String product_detail_code;
-    String order_date;
+    String productDetailCode;
+    String orderDate;
     String status;
 
     public String getLoginID() {
@@ -58,12 +58,12 @@ public class HistoryModel {
         this.productName = productName;
     }
 
-    public String getOrder_reason() {
-        return order_reason;
+    public String getOrderReason() {
+        return orderReason;
     }
 
-    public void setOrder_reason(String order_reason) {
-        this.order_reason = order_reason;
+    public void setOrderReason(String orderReason) {
+        this.orderReason = orderReason;
     }
 
     public String getReturnDate() {
@@ -82,20 +82,20 @@ public class HistoryModel {
         this.rentalDate = rentalDate;
     }
 
-    public String getProduct_detail_code() {
-        return product_detail_code;
+    public String getProductDetailCode() {
+        return productDetailCode;
     }
 
-    public void setProduct_detail_code(String product_detail_code) {
-        this.product_detail_code = product_detail_code;
+    public void setProductDetailCode(String productDetailCode) {
+        this.productDetailCode = productDetailCode;
     }
 
-    public String getOrder_date() {
-        return order_date;
+    public String getOrderDate() {
+        return orderDate;
     }
 
-    public void setOrder_date(String order_date) {
-        this.order_date = order_date;
+    public void setOrderDate(String orderDate) {
+        this.orderDate = orderDate;
     }
 
     public String getStatus() {

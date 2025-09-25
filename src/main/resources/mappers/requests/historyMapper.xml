@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="kr.happyjob.study.repository.requests.HistoryMapper">
     <select id="historyList" resultType="kr.happyjob.study.vo.requests.HistoryModel">
-        /* kr.happyjob.study.vo.requests.HistoryModel */
+        /* kr.happyjob.study.vo.requests.historyList */
         SELECT
             U.team AS team,
             U.name AS name,
@@ -16,7 +16,7 @@
         INNER JOIN tb_product_info P ON PD.product_no = P.product_no
         INNER JOIN tb_userinfo U ON PD.loginID = U.loginID
         <where>
-            (PD.rental_date IS NOT NULL OR PD.return_date IS NOT NULL)
+            PD.rental_date IS NOT NULL OR PD.return_date IS NOT NULL
             <if test="loginID != null and !loginID.equals('')">
                 AND PD.loginID = #{loginID}
             </if>
@@ -93,4 +93,31 @@
             </if>
         </where>
     </select>
+
+    <select id="detailHistory" parameterType="java.util.Map" resultType="kr.happyjob.study.vo.requests.HistoryModel">
+        /* kr.happyjob.study.vo.requests.detailHistory */
+        SELECT
+            U.team AS team,
+            U.name AS name,
+            P.product_name AS productName,
+            PD.product_detail_code AS productDetailCode,
+            PD.rental_date AS rentalDate,
+            PD.return_date AS returnDate,
+            PD.order_reason AS orderReason,
+            PD.product_no AS productNo,
+            PD.order_date AS orderDate
+        FROM tb_product_detail PD
+                 LEFT JOIN tb_product_info P ON PD.product_no = P.product_no
+                 LEFT JOIN tb_userinfo U ON PD.loginID = U.loginID
+        WHERE PD.product_no = #{productNo}
+          AND PD.product_detail_code = #{productDetailCode}
+    </select>
+
+    <delete id="deleteHistory" parameterType="java.util.Map">
+        /* kr.happyjob.study.vo.requests.deleteHistory*/
+        DELETE
+        FROM tb_product_detail
+        WHERE product_no = #{productNo}
+          AND product_detail_code = #{productDetailCode}
+    </delete>
 </mapper>

@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -23,11 +24,19 @@ public class HistoryService {
         this.historymapper = historyMapper;
     }
 
-    public List<HistoryModel> historyList(@RequestParam Map<String, Object> paramMap){
+    public List<HistoryModel> historyList(@RequestParam Map<String, Object> paramMap) {
         return historymapper.historyList(paramMap);
     }
 
     public int historyCnt(@RequestParam Map<String, Object> paramMap) {
         return historymapper.historyCnt(paramMap);
+    }
+
+    public HistoryModel detailHistory(@RequestParam Map<String, Object> paramMap) {
+        return historymapper.detailHistory(paramMap);
+    }
+
+    public int deleteHistory(@RequestParam Map<String, Object> paramMap) {
+        return historymapper.deleteHistory(paramMap);
     }
 }
