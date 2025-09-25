@@ -39,6 +39,7 @@
     </select>
 
     <!-- 일괄 반납 신청 -->
+    <!--    -->
     <update id="returnAll">
         /*kr.happyjob.study.requests.returns.model.ReturnsModel.returnAll*/
         UPDATE tb_product_detail
