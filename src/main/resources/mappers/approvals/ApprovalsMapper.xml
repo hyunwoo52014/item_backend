@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.happyjob.study.repository.approvals.ApprovalsMapper">
+
+<!-- (관리자) 신청/반납 > 결제 부분 : 전체 목록 select   -->
+<select id="getApprovalsList" resultType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+    select pd.category_code,pd.product_detail_code,ui.name, pinfo.product_name,pd.order_date, pd.product_state
+    from tb_product_detail pd
+    left outer join tb_userinfo ui on pd.loginID = ui.loginID
+    left outer join tb_product_info pinfo on pd.product_no = pinfo.product_no
+    where product_state='R' or product_state='O'
+    ;
+</select>
+
+<!-- (관리자) 신청/반납 > 결제 부분 : Pagination을 위한 총 column 수 반환 -->
+<select id="getTotalApprovalCnt" resultType="int">
+    select count(*) from tb_product_detail
+    where product_state='R' or product_state='O'
+    ;
+</select>
+
+
+</mapper>
