@@ -1,6 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-</beans>
+<mapper namespace="kr.happyjob.study.repository.returns.ReturnsMapper">
+
+    <!-- 일괄반납 목록조회  -->
+    <select id = "returnsList" resultType="kr.happyjob.study.vo.returns.ReturnsModel">
+        /*kr.happyjob.study.requests.returns.model.ReturnsModel.returnsList*/
+        SELECT	D.category_code,
+        I.product_name,
+        CD.category_name,
+        D.product_state,
+        D.product_detail_code
+        FROM	tb_product_detail D
+        JOIN tb_product_info I
+        ON D.product_no = I.product_no AND D.loginID = #{loginId}
+        JOIN tb_category_code CD
+        ON CD.category_code = D.category_code
+        <where>
+            <if test="categoryCode != null and categoryCode != ''  ">
+                AND D.category_code = #{categoryCode}
+            </if>
+            AND D.loginID = #{loginId}
+        </where>
+        LIMIT #{pageIndex}, #{pageSize}
+    </select>
+
+    <!-- 사용신청 목록 총 갯수 조회 -->
+    <select id="returnsCnt" resultType="int">
+        /*kr.happyjob.study.requests.returns.model.ReturnsModel.returnsCnt*/
+        SELECT	COUNT(*)
+        FROM	tb_product_detail D JOIN tb_product_info I
+        ON D.product_no = I.product_no AND D.loginID = #{loginId}
+        <where>
+            <if test="categoryCode != null and categoryCode != ''  ">
+                D.product_state = #{categoryCode}
+            </if>
+        </where>
+    </select>
+
+    <!-- 일괄 반납 신청 -->
+    <update id="returnAll">
+        /*kr.happyjob.study.requests.returns.model.ReturnsModel.returnAll*/
+        UPDATE tb_product_detail
+        SET
+            product_state = 'R'
+        WHERE
+            product_state='Y' AND loginID = #{loginId}
+    </update>
+</mapper>
+
