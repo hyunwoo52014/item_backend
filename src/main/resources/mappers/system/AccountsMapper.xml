@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.happyjob.study.repository.system.AccountsMapper">
+
+    <!-- Accounts 목록 조회 -->
+    <select id = "accountsList" parameterType="java.util.Map" resultType = "kr.happyjob.study.vo.system.AccountsModel">
+        /*kr.happyjob.study.repository.system.AccountsMapper.accountsList*/
+        SELECT
+            loginID,
+            status_yn,
+            name,
+            hp,
+            regdate
+        FROM tb_userinfo
+        <where>
+            <if test="search != null and search != ''">
+                <choose>
+                    <when test="searchKey.equals(loginId)">
+                        AND loginID LIKE CONCAT('%',#{search},'%')
+                    </when>
+                    <when test="searchKey.equals(name)">
+                        AND name LIKE CONCAT('%',#{search},'%')
+                    </when>
+                    <otherwise>
+                        AND (
+                        loginID LIKE CONCAT('%',#{search},'%') OR
+                        name LIKE CONCAT('%',#{search},'%')
+                        )
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
+        LIMIT ${pageIndex}, ${pageSize}
+    </select>
+
+    <!-- Accounts 총 개수 조회 -->
+    <select id = "accountsCount" parameterType="java.util.Map" resultType = "int">
+        /*kr.happyjob.study.repository.system.AccountsMapper.accountsList*/
+        SELECT COUNT(*)
+        FROM tb_userinfo
+        <where>
+            <if test="search != null and search != ''">
+                <choose>
+                    <when test="searchKey.equals(loginId)">
+                        AND loginID LIKE CONCAT('%',#{search},'%')
+                    </when>
+                    <when test="searchKey.equals(name)">
+                        AND name LIKE CONCAT('%',#{search},'%')
+                    </when>
+                    <otherwise>
+                        AND (
+                        loginID LIKE CONCAT('%',#{search},'%') OR
+                        name LIKE CONCAT('%',#{search},'%')
+                        )
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
+    </select>
+
+    <!-- Account Detail 조회 -->
+    <select id = "accountDetail" parameterType="java.util.Map" resultType = "kr.happyjob.study.vo.system.AccountsModel">
+        SELECT
+            loginID,
+            status_yn,
+            name,
+            hp,
+            regdate,
+            team,
+            addr,
+            birthday
+        FROM
+            tb_userinfo
+        <where>
+            loginID=#{loginID}
+        </where>
+    </select>
+
+    <!-- Account Equip 조회 -->
+    <select id = "accountEquip" parameterType="java.util.Map" resultType = "kr.happyjob.study.vo.system.AccountsModel">
+        SELECT
+            D.category_code,
+            D.product_detail_code,
+            I.product_name,
+            D.order_date,
+            D.rental_date
+        FROM tb_product_detail D
+        JOIN tb_product_info I
+    <where>
+            D.product_no = I.product_no AND (D.loginID = #{loginID} AND D.product_state = 'Y')
+    </where>
+        LIMIT ${pageIndex}, ${pageSize}
+    </select>
+
+    <!-- Account Equip 총 개수 조회 -->
+    <select id = "accountEquipCount" parameterType="java.util.Map" resultType = "int">
+        SELECT COUNT(*)
+        FROM tb_product_detail
+        <where>
+            loginID = #{loginID} AND product_state = 'Y'
+        </where>
+    </select>
+
+    <!-- Account Delete -->
+    <update id="accountDelete">
+        UPDATE tb_userinfo
+        SET status_yn='N'
+        WHERE loginID=#{loginID}
+    </update>
+
+    <!-- Account Restore -->
+    <update id="accountRestore">
+        UPDATE tb_userinfo
+        SET status_yn='Y'
+        WHERE loginID=#{loginID}
+    </update>
+</mapper>
