@@ -15,6 +15,8 @@ public class ApprovalsVO {
     private Date rental_date; // 대여일
     private Date return_date; //반납일
 
+    private String order_reason; //신청 사유
+
     private String product_state; // 제품 상태
 
 
@@ -74,6 +76,14 @@ public class ApprovalsVO {
         this.return_date = return_date;
     }
 
+    public String getOrder_reason() {
+        return order_reason;
+    }
+
+    public void setOrder_reason(String order_reason) {
+        this.order_reason = order_reason;
+    }
+
     public String getProduct_state() {
         return product_state;
     }
@@ -86,12 +96,13 @@ public class ApprovalsVO {
     public String toString() {
         return "ApprovalsVO{" +
                 "category_code='" + category_code + '\'' +
-                ", product_detail_code='" + product_detail_code + '\'' +
+                ", product_detail_code=" + product_detail_code +
                 ", name='" + name + '\'' +
                 ", product_name='" + product_name + '\'' +
                 ", order_date=" + order_date +
                 ", rental_date=" + rental_date +
                 ", return_date=" + return_date +
+                ", order_reason='" + order_reason + '\'' +
                 ", product_state='" + product_state + '\'' +
                 '}';
     }

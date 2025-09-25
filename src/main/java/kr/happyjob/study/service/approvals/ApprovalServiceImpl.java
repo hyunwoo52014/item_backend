@@ -50,8 +50,6 @@ public class ApprovalServiceImpl implements ApprovalsService{
     }// end totalCnt
 
 
-    public String getWrittenReason(ApprovalsVO oneRowData){
-        return am.getWrittenReaSon(oneRowData);
-    }//getWrittenReason
+
 
 }//end class

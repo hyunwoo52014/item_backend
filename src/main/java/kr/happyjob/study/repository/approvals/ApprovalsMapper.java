@@ -13,6 +13,4 @@ public interface ApprovalsMapper {
     /* (관리자) 신청/반납 > 결제 : Pagination을 위한 총 column 수 반환 */
     public int getTotalApprovalCnt();
 
-    /* 장비코드 + 이름 + 신청날짜 => 신청사유(String 반환) */
-    public String getWrittenReaSon(ApprovalsVO approvalsVO);
 }//interface

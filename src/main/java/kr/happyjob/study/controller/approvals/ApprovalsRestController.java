@@ -25,8 +25,8 @@ public class ApprovalsRestController {
     @RequestMapping("/approvals/showList")
     public List<ApprovalsVO> showAllApprovalsList(){
 
-        List<ApprovalsVO> list=as.showApprovalsList();
-        return list;
+//        List<ApprovalsVO> list=as.showApprovalsList();
+        return as.showApprovalsList();
     }//end showAllApprocalsList
 
     /* 전체 신청 목록 갯수 출력 */
@@ -38,21 +38,6 @@ public class ApprovalsRestController {
         return cnt;
     }//end getTotalListCnt
 
-    /**
-     * 장비코드(카테고리명, 장비상세코드), 사용자이름, 신청날짜 비교 <br/>
-     * 해당되는 사유 반환
-     * @param oneRowDataApprovalsVO
-     * @return String 장비신청 사유 혹은 반납 사유 적은거 반환
-     */
-    @RequestMapping("/approvals/getWrittenPurpose")
-    public String getWrittenPurpose(@RequestBody ApprovalsVO oneRowDataApprovalsVO){
-        String strPurpose = "";
-        logger.info("/approvals/getWrittenPurpose..---=======" + oneRowDataApprovalsVO);
-        strPurpose=as.getWrittenReason(oneRowDataApprovalsVO);
-
-        logger.info("strPurpose-------======"+ strPurpose);
-        return strPurpose;
-    }//getWrittenPurpose
 
 
 }//end class
