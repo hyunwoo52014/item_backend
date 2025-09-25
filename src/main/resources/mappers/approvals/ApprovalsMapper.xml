@@ -19,5 +19,16 @@
     ;
 </select>
 
+<!-- 장비코드 + 이름 + 신청날짜 => 신청사유(String 반환)   -->
+<select id="getWrittenReaSon" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO" resultType="String">
+    select pd.order_reason
+    from tb_product_detail pd
+             join tb_userinfo uinfo
+                  on pd.loginID = uinfo.loginID
+    where pd.category_code = #{category_code}
+      and pd.product_detail_code=#{product_detail_code}
+      and pd.order_date like concat(#{order_date}, '%')
+      and uinfo.name = #{name};
+</select>
 
 </mapper>

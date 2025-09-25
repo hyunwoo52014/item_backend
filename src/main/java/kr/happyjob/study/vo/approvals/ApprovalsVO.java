@@ -6,7 +6,7 @@ import java.sql.Date;
 public class ApprovalsVO {
 
     private String category_code;
-    private String product_detail_code;
+    private int product_detail_code;
 
     private String name; // 사용자 이름
     private String product_name; // 제품 이름
@@ -26,11 +26,11 @@ public class ApprovalsVO {
         this.category_code = category_code;
     }
 
-    public String getProduct_detail_code() {
+    public int getProduct_detail_code() {
         return product_detail_code;
     }
 
-    public void setProduct_detail_code(String product_detail_code) {
+    public void setProduct_detail_code(int product_detail_code) {
         this.product_detail_code = product_detail_code;
     }
 
