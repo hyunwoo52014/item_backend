@@ -31,27 +31,39 @@ public class NoticeController {
 
             paramMap.put("pageIndex", pageIndex);
             paramMap.put("pageSize", pageSize);
+
+            if (paramMap.containsKey("front_date")) {
+                paramMap.put("from_date", paramMap.get("front_date"));
+            }
+            // 프론트에서 넘어온 'back_date'를 'to_date'로 변경
+            if (paramMap.containsKey("back_date")) {
+                paramMap.put("to_date", paramMap.get("back_date"));
+            }
+
             //지금 됨
             System.out.println("들어온 Final paramMap for DB: " + paramMap);
+            //날짜
+            System.out.println("front-date : " + paramMap.get("front_date"));
+            System.out.println("back-date : " + paramMap.get("back_date"));
 
             // 조회
             List<NoticeVO> rows = noticeService.noticeList(paramMap);
             int totalCnt = noticeService.noticeCnt(paramMap);
 
             //이거 들어옴
-            System.out.println("DB Result - rows size: " + (rows != null ? rows.size() : "null"));
-            System.out.println("DB Result - totalCnt: " + totalCnt);
-            System.out.println("First row data: " + (rows != null && !rows.isEmpty() ? rows.get(0) : "no data"));
+            //System.out.println("DB Result - rows size: " + (rows != null ? rows.size() : "null"));
+            //System.out.println("DB Result - totalCnt: " + totalCnt);
+            //System.out.println("First row data: " + (rows != null && !rows.isEmpty() ? rows.get(0) : "no data"));
 
             Map<String, Object> res = new HashMap<>();
             res.put("list", rows);
             res.put("totalCnt", totalCnt);
 
-            System.out.println("Response: " + res);
+            //System.out.println("Response: " + res);
             return res;
 
         } catch (Exception ex) {
-            System.out.println("Exception occurred: " + ex.getMessage());
+            //System.out.println("Exception occurred: " + ex.getMessage());
             ex.printStackTrace();
             throw ex;
         }

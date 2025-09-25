@@ -10,7 +10,6 @@
         <result property="loginID"    column="loginID"/>
         <result property="title"      column="title"/>
         <result property="content"    column="content"/>
-        <!-- write_date를 화면에서 YYYY-MM-DD 문자열로 쓰고 싶어서 별칭 writeDate로 반환 -->
         <result property="writeDate"  column="writeDate"/>
     </resultMap>
 
@@ -35,7 +34,7 @@
             </if>
         </where>
         ORDER BY n.notice_code DESC
-        LIMIT #{pageSize} OFFSET #{pageIndex}
+        LIMIT #{pageIndex}, #{pageSize}
     </select>
 
     <!-- 카운트 (총 수) -->
@@ -90,5 +89,7 @@
         DELETE FROM tb_notice
         WHERE notice_code = #{notice_code}
     </delete>
+
+
 
 </mapper>
