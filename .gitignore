@@ -1,6 +1,7 @@
 HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
+happyjob3.iml
 
 ### STS ###
 .apt_generated
@@ -10,8 +11,9 @@ target/
 .settings
 .springBeans
 .sts4-cache
-.idea
 
+.idea
+node_modules
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
