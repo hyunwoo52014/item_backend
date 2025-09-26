@@ -11,8 +11,9 @@ happyjob3.iml
 .settings
 .springBeans
 .sts4-cache
-.idea
 
+.idea
+node_modules
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
