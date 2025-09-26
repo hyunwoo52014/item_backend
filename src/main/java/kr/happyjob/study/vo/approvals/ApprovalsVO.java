@@ -5,10 +5,15 @@ import java.sql.Date;
 
 public class ApprovalsVO {
 
-    private String category_code;
-    private int product_detail_code;
+    private int usage_code; // 사용이력 코드
 
+    private String category_code; // 카테고리 코드
+    private int product_detail_code; // 제품 상세 코드
+
+    private String loginID; // 사용자 ID
     private String name; // 사용자 이름
+
+    private String product_no; //제품 번호
     private String product_name; // 제품 이름
 
     private Date order_date; // 사용 신청일,반납 신청일
@@ -19,6 +24,16 @@ public class ApprovalsVO {
 
     private String product_state; // 제품 상태
 
+
+    /********************************************************************/
+
+    public int getUsage_code() {
+        return usage_code;
+    }
+
+    public void setUsage_code(int usage_code) {
+        this.usage_code = usage_code;
+    }
 
     public String getCategory_code() {
         return category_code;
@@ -36,12 +51,28 @@ public class ApprovalsVO {
         this.product_detail_code = product_detail_code;
     }
 
+    public String getLoginID() {
+        return loginID;
+    }
+
+    public void setLoginID(String loginID) {
+        this.loginID = loginID;
+    }
+
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getProduct_no() {
+        return product_no;
+    }
+
+    public void setProduct_no(String product_no) {
+        this.product_no = product_no;
     }
 
     public String getProduct_name() {
@@ -95,9 +126,12 @@ public class ApprovalsVO {
     @Override
     public String toString() {
         return "ApprovalsVO{" +
-                "category_code='" + category_code + '\'' +
+                "usage_code=" + usage_code +
+                ", category_code='" + category_code + '\'' +
                 ", product_detail_code=" + product_detail_code +
+                ", loginID='" + loginID + '\'' +
                 ", name='" + name + '\'' +
+                ", product_no='" + product_no + '\'' +
                 ", product_name='" + product_name + '\'' +
                 ", order_date=" + order_date +
                 ", rental_date=" + rental_date +

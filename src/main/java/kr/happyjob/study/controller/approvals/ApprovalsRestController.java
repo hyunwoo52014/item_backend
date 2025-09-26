@@ -39,5 +39,14 @@ public class ApprovalsRestController {
     }//end getTotalListCnt
 
 
+    /* 승인 버튼을 눌렀을 때 실행 */
+    @RequestMapping("/approvals/clickApprovals")
+    public int clickApprovals(@RequestBody ApprovalsVO approvalsVO){
+        int resultCnt=0;
+
+        //만약 resultCnt가 2라면 잘 실행된것.! (사용신청, 반납신청 모두 resultCnt가 2라면 잘 실행된거임.)
+        resultCnt = as.clickApprovalsBtn(approvalsVO);
+        return resultCnt;
+    }//end clickApprovals
 
 }//end class

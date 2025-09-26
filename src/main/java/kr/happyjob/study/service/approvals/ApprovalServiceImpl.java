@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +50,36 @@ public class ApprovalServiceImpl implements ApprovalsService{
         return cnt;
     }// end totalCnt
 
+    /**
+     * 승인 버튼을 눌렀을 때 실행 <br/>
+     * @return 성공 실행한 쿼리문 cnt
+     */
+    @Transactional
+    public int clickApprovalsBtn(ApprovalsVO approvalsVO){
+        int resultCnt=0;
+
+        if(approvalsVO.getProduct_state().equals("O")){
+            //사용 요청이었을 경우
+            resultCnt+=am.updateProductDetailOnApprove(approvalsVO);
+            approvalsVO.setUsage_code(am.getUsageCodeCount(approvalsVO)+1);
+            resultCnt+=am.insertUseHistoryOnApprove(approvalsVO);
+
+            //만약 resultCnt가 2라면 잘 실행된거지.
+
+        }else if(approvalsVO.getProduct_state().equals("R")){
+            //반납 요청이었을 경우
+            resultCnt+=am.updateProductDetailOnReturn(approvalsVO);
+            resultCnt+=am.updateUseHistoryOnReturn(approvalsVO);
+
+            //만약 resultCnt가 2라면 잘 실행된것.!
+
+        }//end else if
+
+        return resultCnt;
+    }//clickApprovalsBtn
+
+    //승인 버튼을 누르면, 승인이 완료되었습니다. 팝업 ( 초록색)
+    //거절 버튼을 누르면, 거절되었습니다. 팝업 (빨간색)
 
 
 
