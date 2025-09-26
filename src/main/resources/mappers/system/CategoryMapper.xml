@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.happyjob.study.repository.system.CategoryMapper">
+    <select id="searchCategories" parameterType="java.util.Map" resultType="kr.happyjob.study.vo.system.CategoryModel">
+        /*kr.happyjob.study.repository.system.CategoryMapper.searchCategories*/
+        SELECT
+            @ROWNUM:=@ROWNUM+1 as categoryNumber,
+            C.category_code AS categoryCode,
+            category_name as categoryName,
+            SUM(IFNULL(quantity, 0)) as categoryQuantity
+        FROM
+            tb_category_code as C
+        LEFT JOIN
+            tb_product_info as P
+        ON
+            C.category_code = P.category_code
+        CROSS JOIN
+            (SELECT @ROWNUM:=0) r
+        <where>
+            <if test="searchByName != null and searchByName != ('')">
+                AND category_name LIKE CONCAT('%', #{searchByName}, '%')
+            </if>
+        </where>
+        GROUP BY category_name, C.category_code
+        ORDER BY categoryNumber
+        LIMIT #{pageIndex}, #{pageSize}
+    </select>
+
+    <select id="searchCategoriesCount" parameterType="java.util.Map" resultType="int">
+        /*kr.happyjob.study.repository.system.CategoryMapper.searchCategoriesCount*/
+        SELECT
+            COUNT(*)
+        FROM
+            tb_category_code as C
+        <where>
+            <if test="searchByName != null and searchByName != ('')">
+                AND category_name LIKE CONCAT('%', #{searchByName}, '%')
+            </if>
+        </where>
+    </select>
+
+    <insert id="saveDetailCode">
+        /*kr.happyjob.study.repository.system.CategoryMapper.saveDetailCode*/
+        INSERT INTO
+            tb_detail_code (
+                group_code
+               ,detail_code
+               ,detail_name
+               ,use_yn
+        ) VALUES (
+            'equip',
+            #{categoryCode},
+            #{categoryName},
+            'Y'
+        )
+    </insert>
+
+    <insert id="saveCategory">
+        /*kr.happyjob.study.repository.system.CategoryMapper.saveCategory*/
+        INSERT INTO
+            tb_category_code(
+                category_code
+                ,category_name
+                ,regist_date
+                ,content
+        ) VALUES (
+                #{categoryCode}
+                ,#{categoryName}
+                ,#{registerDate}
+                ,#{categoryContent}
+        )
+    </insert>
+
+    <select id="duplicateCheck" parameterType="java.util.Map" resultType="int">
+        /*kr.happyjob.study.repository.system.CategoryMapper.duplicateCheck*/
+        SELECT
+            COUNT(*)
+        FROM
+            tb_detail_code
+        WHERE
+            group_code = "equip"
+        AND
+            (
+                detail_code = #{categoryCode}
+                OR
+                detail_name = #{categoryName}
+            )
+
+    </select>
+
+    <select id="searchSelectedCategory" parameterType="java.util.Map" resultType="kr.happyjob.study.vo.system.SelectedCategoryModel">
+        /*kr.happyjob.study.repository.system.CategoryMapper.searchSelectedCategory*/
+        SELECT
+            category_code AS categoryCode,
+            category_name AS categoryName,
+            regist_date AS registryDate,
+            content
+        FROM
+            tb_category_code
+        WHERE
+            category_code = #{categoryCode}
+    </select>
+
+    <update id="updateDetailCode">
+        /*kr.happyjob.study.repository.system.CategoryMapper.updateDetailCode*/
+        UPDATE
+            tb_detail_code
+        SET
+            detail_code = #{categoryCode},
+            detail_name = #{categoryName}
+        WHERE
+            group_code = 'equip'
+        AND
+            detail_code = #{beforeCategoryCode}
+    </update>
+
+    <update id="updateCategory">
+        /*kr.happyjob.study.repository.system.CategoryMapper.updateCategory*/
+        UPDATE
+            tb_category_code
+        SET
+            category_code = #{categoryCode},
+            category_name = #{categoryName},
+            content = #{categoryContent}
+        WHERE
+            category_code = #{beforeCategoryCode}
+    </update>
+    <update id="updateProductInfo">
+        /*kr.happyjob.study.repository.system.CategoryMapper.updateProductInfo*/
+        UPDATE
+            tb_product_info
+        SET
+            category_code = #{categoryCode}
+        WHERE
+            category_code = #{beforeCategoryCode}
+    </update>
+    <update id="updateProductDetail">
+        /*kr.happyjob.study.repository.system.CategoryMapper.updateProductDetail*/
+        UPDATE
+            tb_product_detail
+        SET
+            category_code = #{categoryCode}
+        WHERE
+            category_code = #{beforeCategoryCode}
+    </update>
+    <update id="updateUseHistory">
+        /*kr.happyjob.study.repository.system.CategoryMapper.updateUseHistory*/
+        UPDATE
+            tb_use_history
+        SET
+            category_code = #{categoryCode}
+        WHERE
+            category_code = #{beforeCategoryCode}
+    </update>
+    <update id="updateMyRental">
+        /*kr.happyjob.study.repository.system.CategoryMapper.updateMyRental*/
+        UPDATE
+            tb_my_rental
+        SET
+            category_code = #{categoryCode}
+        WHERE
+            category_code = #{beforeCategoryCode}
+    </update>
+
+    <update id="disableForeignKeyCheck">
+        SET FOREIGN_KEY_CHECKS = 0
+    </update>
+
+    <update id="enableForeignKeyCheck">
+        SET FOREIGN_KEY_CHECKS = 1
+    </update>
+
+    <delete id="deleteCategory">
+        /*kr.happyjob.study.repository.system.CategoryMapper.deleteCategory*/
+        DELETE
+        FROM tb_category_code
+        WHERE
+            category_code = #{categoryCode}
+    </delete>
+
+    <delete id="deleteProductDetail">
+        /*kr.happyjob.study.repository.system.CategoryMapper.deleteProductDetail*/
+        DELETE
+        FROM tb_product_detail
+        WHERE
+            category_code = #{categoryCode}
+    </delete>
+
+    <delete id="deleteProductInfo">
+        /*kr.happyjob.study.repository.system.CategoryMapper.deleteProductInfo*/
+        DELETE
+        FROM tb_product_info
+        WHERE
+            category_code = #{categoryCode}
+    </delete>
+
+    <delete id="deleteUseHistory">
+        /*kr.happyjob.study.repository.system.CategoryMapper.deleteUseHistory*/
+        DELETE
+        FROM tb_use_history
+        WHERE
+            category_code = #{categoryCode}
+    </delete>
+
+    <delete id="deleteMyRental">
+        /*kr.happyjob.study.repository.system.CategoryMapper.deleteMyRental*/
+        DELETE
+        FROM tb_my_rental
+        WHERE
+            category_code = #{categoryCode}
+    </delete>
+
+    <delete id="deleteDetailCode">
+        /*kr.happyjob.study.repository.system.CategoryMapper.deleteDetailCode*/
+        DELETE
+        FROM tb_detail_code
+        WHERE
+            group_code = 'equip'
+            AND
+            detail_code = #{categoryCode}
+    </delete>
+
+    <select id="checkCategoryUsageInProductDetail" parameterType="java.util.Map" resultType="int">
+        /*kr.happyjob.study.repository.system.CategoryMapper.checkCategoryUsageInProductDetail*/
+        SELECT
+            COUNT(*)
+        FROM
+            tb_product_detail
+        WHERE
+            category_code = #{categoryCode}
+    </select>
+
+    <select id="checkCategoryUsageInProductInfo" parameterType="java.util.Map" resultType="int">
+        /*kr.happyjob.study.repository.system.CategoryMapper.checkCategoryUsageInProductInfo*/
+        SELECT
+            COUNT(*)
+        FROM
+            tb_product_info
+        WHERE
+            category_code = #{categoryCode}
+    </select>
+
+    <select id="checkCategoryUsageInUseHistory" parameterType="java.util.Map" resultType="int">
+        /*kr.happyjob.study.repository.system.CategoryMapper.checkCategoryUsageInUseHistory*/
+        SELECT
+            COUNT(*)
+        FROM
+            tb_use_history
+        WHERE
+            category_code = #{categoryCode}
+    </select>
+
+    <select id="searchRemainData" parameterType="java.util.Map" resultType="kr.happyjob.study.vo.system.RemainDataModel">
+        /*kr.happyjob.study.repository.system.CategoryMapper.searchRemainData*/
+        SELECT
+            @ROWINDEX:=@ROWINDEX+1 as remainDataNum,
+            I.product_name AS productName,
+            I.category_code AS categoryCode,
+            vendor_name AS vendorName,
+            quantity
+        FROM
+            tb_product_info AS I
+        JOIN
+            tb_category_code AS C
+        ON I.category_code = C.category_code
+        CROSS JOIN
+            (SELECT @ROWINDEX:=0) r
+        WHERE
+            I.category_code = #{categoryCode}
+        ORDER BY remainDataNum
+    </select>
+
+    <select id="searchRemainDataCount" parameterType="java.util.Map" resultType="int">
+        SELECT
+            COUNT(*)
+        FROM
+            tb_product_info
+        WHERE
+            category_code = #{categoryCode}
+    </select>
+</mapper>
