@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="kr.happyjob.study.repository.login.LoginMapper">
+
+    <!--  단순 로그인 -->
 	<select id="login"
 			parameterType="kr.happyjob.study.vo.login.LoginVO"
 			resultType="kr.happyjob.study.vo.login.UserVO">
@@ -15,4 +17,107 @@
 			loginID = #{id}
 			and password = #{pw}
 	</select>
+
+    <!--정보 조회 -->
+    <select id="selectFindId" parameterType="java.util.Map"
+            resultType="kr.happyjob.study.vo.login.LgnInfoModel">
+        SELECT
+        loginID              AS lgn_id,
+        name                 AS usr_nm,
+        user_type            AS mem_author,
+        status_yn            AS status_yn,
+        regdate              AS regdate,
+        addr                 AS addr,
+        addr_detail          AS addr_detail
+        FROM tb_userinfo
+        <where>
+            <if test="loginID != null and loginID != ''">AND loginID = #{loginID}</if>
+            <if test="password != null and password != ''">AND password = #{password}</if>
+            <if test="name != null and name != ''">AND name = #{name}</if>
+            <if test="email != null and email != ''">AND email = #{email}</if>
+        </where>
+    </select>
+
+    <!-- 소셜 회원가입 -->
+    <insert id="registerSocialLogin" parameterType="java.util.Map">
+        INSERT INTO tb_userinfo (
+            loginID, user_type, name, email, regdate, team, addr, addr_detail, status_yn
+        ) VALUES (
+                     #{loginID}, #{user_type}, #{name}, #{email}, #{regdate}, #{team}, #{addr}, #{addr_detail}, #{status_yn}
+                 )
+    </insert>
+
+    <!-- 가입중 중복 확인 -->
+
+    <!-- 아이디 중복 확인-->
+    <select id="checkDuplicatedLoginID" resultType="int" parameterType="String">
+        SELECT count(*)
+        FROM tb_userInfo
+        <if test ="_parameter !=null and _parameter != ''">
+        WHERE loginID = #{_parameter}
+        </if>
+    </select>
+    <!-- 이메일 중복 확인 -->
+    <select id="checkDuplrcatedEmail" resultType="int" parameterType="String">
+        SELECT count(*)
+        FROM tb_userInfo
+        <if test = "_parameter != null and _parameter != ''">
+        WHERE email=#{_parameter}
+        </if>
+    </select>
+
+    <!-- 아이디 찾기 , 비밀번호 찾기 -->
+    <!-- 아이디 검색 : 이름 + 이메일 -->
+    <select id = "searchDuplicatedLoginId" resultType="int" parameterType="java.util.Map">
+        SELECT  COUNT(*)
+        FROM tb_userInfo
+        <if test ="name != null and name != '' "> AND name = #{name}></if>
+        <if test ="email != null and email != '' "> AND email = #{email}></if>
+    </select>
+    <!--비밀번호 찾기-->
+    <select id="checkDuplicatedEmail" resultType="int" parameterType="String">
+        SELECT COUNT(*)
+        FROM tb_userInfo
+        <where>
+            <if test="name != null and name != '' ">AND name = #{name}</if>
+            <if test="email != null and email != '' ">AND email = #{email}</if>
+        </where>
+    </select>
+
+    <!-- 비밀번호 변경 -->
+    <update	id="passwordChangeUpdate" parameterType="java.util.Map">
+        UPDATE
+        tb_userinfo
+        SET password = #{change_password}
+        <where>
+            <if test="loginID !=null and loginID != '' ">
+                AND loginID = #{loginID}
+            </if>
+            <if test="email != null and email != '' ">
+                AND email = #{email}
+            </if>
+        </where>
+    </update>
+
+    <!-- 추가 유저 정보 갱신 -->
+    <update id="updateUser" parameterType="java.util.Map">
+        /*kr.happy.study.login.dao.LoginDao.updateUser*/
+        UPDATE tb_userinfo
+        <set>
+            <if test="name != null">name = #{name}, </if>
+            <if test="password != null">password = #{password}, </if>
+            <if test="hp != null">hp = #{hp}, </if>
+            <if test="email != null">email = #{email}, </if>
+            <if test="regdate != null">regdate = #{regdate}, </if>
+            <if test="addr != null">addr = #{addr}, </if>
+            <if test="addr_detail != null">addr_detail = #{addr_detail}, </if>
+            <if test="birthday != null">birthday = #{birthday}, </if>
+            <if test="team != null">team = #{team}, </if>
+            <if test="status_yn != null">status_yn = #{status_yn}, </if>
+        </set>
+        WHERE
+        loginID = #{loginID}
+    </update>
+
 </mapper>
+

@@ -15,7 +15,6 @@ import kr.happyjob.study.vo.login.UsrMnuChildAtrtModel;
 
 @Mapper
 public interface LoginProcMapper {
-	
 	LgnInfoModel loginProc(Map<String, Object> paramMap);
 }
 
