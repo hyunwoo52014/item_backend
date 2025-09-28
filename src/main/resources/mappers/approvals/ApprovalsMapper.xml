@@ -51,5 +51,9 @@
     where loginID=#{loginID} and category_code=#{category_code} and product_detail_code=#{product_detail_code};
 </update>
 
+<!--  사용 요청 거절  -->
+
+<!-- 반납 요청 거절 -->
+
 
 </mapper>
