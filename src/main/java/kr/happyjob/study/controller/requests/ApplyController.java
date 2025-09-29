@@ -2,14 +2,14 @@ package kr.happyjob.study.controller.requests;
 
 import kr.happyjob.study.service.requests.ApplyService;
 import kr.happyjob.study.vo.requests.ApplyModel;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.*;
+import jakarta.servlet.http.*;
 import java.util.*;
 import java.util.ArrayList;
 @Controller
