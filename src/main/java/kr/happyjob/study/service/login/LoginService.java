@@ -16,22 +16,22 @@ import kr.happyjob.study.vo.login.UserVO;
 
 @Service
 public class LoginService {
-	
-	// Set logger
-	private final Logger logger = LogManager.getLogger(this.getClass());
-	private final String className = this.getClass().toString();
-	   
-	
-	@Autowired
-	private LoginMapper mapper;
+
+    // Set logger
+    private final Logger logger = LogManager.getLogger(this.getClass());
+    private final String className = this.getClass().toString();
+
+
+    @Autowired
+    private LoginMapper mapper;
 
     @Autowired
     private MailSendService mailSendService;
 
     //단순 로그인
-	public UserVO login(LoginVO vo) {
-		return mapper.login(vo);
-	}
+    public UserVO login(LoginVO vo) {
+        return mapper.login(vo);
+    }
 
 /*    // 소셜 로그인
     public LgnInfoModel loginProc(Map<String, Object> paramMap) {
@@ -94,8 +94,4 @@ public class LoginService {
     public String randomCode() throws Exception {
         return mailSendService.RandomNum();
     }
-
-
-
-
 }

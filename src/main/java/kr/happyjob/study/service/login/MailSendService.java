@@ -17,12 +17,12 @@ public class MailSendService {
     @Autowired
     private LoginMapper loginMapper;
 
-    public void sendEmail(String toEmail, String content, boolean AuthOrPassWord) throws Exception {
-        String host = "smtp.gmail.com";
+    public void sendEmail(String emailNum, String content, boolean AuthOrPassWord) throws Exception {
+        String host = "smtp.gmail.com"; // smtp 서버
         String subject = "ITAM 인증번호 전달";
         String fromName = "ITAM 관리자";
-        String from = "hyunwoo52014@gmail.com"; // 보내는 메일 계정
-        String to1 = "xkty vvia gvwi jrex"; // Gmail 앱 비밀번호
+        String from = "mky3eong@gmail.com"; // 보내는 메일
+        String to1 = emailNum; // 받는 메일
 
         if (AuthOrPassWord) {
             content = "인증번호 [" + content + "]";
@@ -47,7 +47,7 @@ public class MailSendService {
                 protected PasswordAuthentication getPasswordAuthentication() {
                     // 가장 중요, 이메일 계정, 앱 비밀번호 사용해야함
                     // 이후 사용 불능시 따로 구글에서 인증받아서 이메일과 앱 비밀번호 넣을 것
-                    return new PasswordAuthentication("hyunwoo52014@gmail.com", "xkty vvia gvwi jrex");
+                    return new PasswordAuthentication(from,"skab rprv izav kudq");
                 }
             });
             Message msg = new MimeMessage(mailSession);

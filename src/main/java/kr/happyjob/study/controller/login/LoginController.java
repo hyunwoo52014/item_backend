@@ -12,6 +12,7 @@ import kr.happyjob.study.repository.login.ListUsrChildMnuAtrtMapper;
 import kr.happyjob.study.service.login.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -33,19 +34,19 @@ import kr.happyjob.study.vo.login.UsrMnuChildAtrtModel;
 
 @Controller
 public class LoginController {
-	
-	// Set logger
-	private final Logger logger = LogManager.getLogger(this.getClass());
 
-	// Get class name for logger
-	private final String className = this.getClass().toString();
-	   
-	
-	@Autowired
-	private LoginService loginService; // 일반용
+    // Set logger
+    private final Logger logger = LogManager.getLogger(this.getClass());
 
-	@Autowired
-	private LoginProcService loginProcService; //소셜용
+    // Get class name for logger
+    private final String className = this.getClass().toString();
+
+
+    @Autowired
+    private LoginService loginService; // 일반용
+
+    @Autowired
+    private LoginProcService loginProcService; //소셜용
 
     @Autowired
     private ListUsrChildMnuAtrtService listUsrChildMnuAtrtService;
@@ -60,53 +61,135 @@ public class LoginController {
     private MailSendService mailSendService;
 
 
-	
-	@GetMapping("/main")
-	public ModelAndView main() throws Exception {
-		ModelAndView mv = new ModelAndView();
-		mv.setViewName("main");
-		return mv;
-	}
-	
-	@GetMapping("/login")
-	public ModelAndView loginPage() throws Exception {
-		ModelAndView mv = new ModelAndView();
-		mv.setViewName("login");
-		return mv;
-	}
-	
-	@GetMapping("/react")
-	public ModelAndView reactPage() throws Exception {
-		ModelAndView mv = new ModelAndView();
-		mv.setViewName("react");
-		return mv;
-	}
 
-	@PostMapping("/login")
-	@ResponseBody
-	public Map<String, Object> login(LoginVO vo) throws Exception {
-		logger.info("login start");
-		logger.info("inputId / inputPw");
-		logger.info(vo.getId() + " / " + vo.getPw());
-		UserVO userVo = new UserVO();
-		Map<String, Object> resultMap = new HashMap<>();
-		try {
-			userVo = loginService.login(vo);
-			if (userVo == null) {
-				resultMap.put("resCode", "F");
-				resultMap.put("resMsg", "로그인 실패");
-			} else {
-				resultMap.put("resCode", "S");
-				resultMap.put("resMsg", "로그인 성공");
-				//userVo = service.login(vo);
-				logger.info("userVo");
-				logger.info(userVo.toString());
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return resultMap;
-	}
+    @GetMapping("/main")
+    public ModelAndView main() throws Exception {
+        ModelAndView mv = new ModelAndView();
+        mv.setViewName("main");
+        return mv;
+    }
+
+    @GetMapping("/login")
+    public ModelAndView loginPage() throws Exception {
+        ModelAndView mv = new ModelAndView();
+        mv.setViewName("login");
+        return mv;
+    }
+
+    @GetMapping("/react")
+    public ModelAndView reactPage() throws Exception {
+        ModelAndView mv = new ModelAndView();
+        mv.setViewName("react");
+        return mv;
+    }
+
+    @PostMapping("/login")
+    @ResponseBody
+    public Map<String, Object> login(LoginVO vo) throws Exception {
+        logger.info("login start");
+        logger.info("inputId / inputPw");
+        logger.info(vo.getId() + " / " + vo.getPw());
+        UserVO userVo = new UserVO();
+        Map<String, Object> resultMap = new HashMap<>();
+        try {
+            userVo = loginService.login(vo);
+            if (userVo == null) {
+                resultMap.put("resCode", "F");
+                resultMap.put("resMsg", "로그인 실패");
+            } else {
+                resultMap.put("resCode", "S");
+                resultMap.put("resMsg", "로그인 성공");
+                //userVo = service.login(vo);
+                logger.info("userVo");
+                logger.info(userVo.toString());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultMap;
+    }
+
+
+    /*  로그인 */
+    @PostMapping(
+            value = {"/loginProc.do", "/api/loginProc.do", "/login.do", "/api/login.do"},
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @ResponseBody
+    public Map<String, Object> loginProc(Model model, @RequestParam Map<String, Object> paramMap, HttpServletRequest request,
+                                         HttpServletResponse response, HttpSession session) throws Exception {
+
+        logger.info("+ Start LoginController.loginProc.do");
+        logger.info("   - ParamMap : " + paramMap);
+
+        // 사용자 로그인
+        String result;
+        String resultMsg;
+        Map<String, Object> resultMap = new HashMap<String, Object>();
+
+
+        try {
+            LgnInfoModel lgnInfoModel = loginProcService.loginProc(paramMap);
+
+
+            logger.info("   - lgnInfoModel : " + lgnInfoModel);
+
+
+            if (lgnInfoModel != null) {
+                result = "SUCCESS";
+                resultMsg = "사용자 로그인 정보가 일치 합니다.";
+                System.out.println("asdf" + lgnInfoModel.getApproval_cd());
+                System.out.println("y".equals(lgnInfoModel.getApproval_cd()));
+                System.out.println("asdf" + lgnInfoModel.getApproval_cd());
+                System.out.println("n".equals(lgnInfoModel.getApproval_cd()));
+                // 사용자 메뉴 권한 조회
+                paramMap.put("usr_sst_id", lgnInfoModel.getUsr_sst_id());
+                paramMap.put("userType",lgnInfoModel.getMem_author());
+                // 메뉴 목록 조회 0depth
+                List<UsrMnuAtrtModel> listUsrMnuAtrtModel = listUsrMnuAtrtService.listUsrMnuAtrt(paramMap);
+                // 메뉴 목록 조회 1depth
+                for(UsrMnuAtrtModel list : listUsrMnuAtrtModel){
+                    Map<String, Object> resultMapSub = new HashMap<String, Object>();
+                    resultMapSub.put("lgn_Id", paramMap.get("lgn_Id"));
+                    resultMapSub.put("hir_mnu_id", list.getMnu_id());
+                    resultMapSub.put("userType",lgnInfoModel.getMem_author());
+                    list.setNodeList(listUsrChildMnuAtrtService.listUsrChildMnuAtrt(resultMapSub));
+                }
+
+                session.setAttribute("loginId",lgnInfoModel.getLgn_id());                     //   로그인 ID
+                session.setAttribute("userNm",lgnInfoModel.getUsr_nm());                  // 사용자 성명
+                session.setAttribute("usrMnuAtrt", listUsrMnuAtrtModel);
+                session.setAttribute("userType", lgnInfoModel.getMem_author());            // 로그린 사용자 권란       A: 관리자       B: 기업회원    C:일반회원
+                session.setAttribute("serverName", request.getServerName());
+
+                resultMap.put("loginId",lgnInfoModel.getLgn_id());
+                resultMap.put("userNm",lgnInfoModel.getUsr_nm());
+                resultMap.put("usrMnuAtrt", listUsrMnuAtrtModel);
+                resultMap.put("userType", lgnInfoModel.getMem_author());
+                resultMap.put("serverName", request.getServerName());
+            } else {
+
+                result = "FALSE";
+                resultMsg = "사용자 로그인 정보가 일치하지 않습니다.";
+            }
+
+
+
+            resultMap.put("result", result);
+            resultMap.put("resultMsg", resultMsg);
+            resultMap.put("serverName", request.getServerName());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        logger.info("+ End LoginController.loginProc.do");
+
+        return resultMap;
+    }
+
 
    /* // 소셜 로그인  - lgnInfoModel
 	@RequestMapping("/loginProc.do")
@@ -121,15 +204,15 @@ public class LoginController {
 		  String result;
 		  String resultMsg;
 		  Map<String, Object> resultMap = new HashMap<String, Object>();
-		  
-		  
+
+
 		  try {
 			  LgnInfoModel lgnInfoModel = loginProcService.loginProc(paramMap);
-	      
-		  
+
+
 		       logger.info("   - lgnInfoModel : " + lgnInfoModel);
 
-		  
+
 		       if (lgnInfoModel != null) {
 		    	   result = "SUCCESS";
 		  	       resultMsg = "사용자 로그인 정보가 일치 합니다.";
@@ -145,140 +228,178 @@ public class LoginController {
 		  	       // 메뉴 목록 조회 1depth
 		  	       for(UsrMnuAtrtModel list : listUsrMnuAtrtModel){
 		  	          Map<String, Object> resultMapSub = new HashMap<String, Object>();
-		  	          resultMapSub.put("lgn_Id", paramMap.get("lgn_Id")); 
+		  	          resultMapSub.put("lgn_Id", paramMap.get("lgn_Id"));
 		  	          resultMapSub.put("hir_mnu_id", list.getMnu_id());
 		  	          resultMapSub.put("userType",lgnInfoModel.getMem_author());
 		  	          list.setNodeList(listUsrChildMnuAtrtService.listUsrChildMnuAtrt(resultMapSub));
 		  	       }
-		  	     
+
 		  	       session.setAttribute("loginId",lgnInfoModel.getLgn_id());                     //   로그인 ID
 		  	       session.setAttribute("userNm",lgnInfoModel.getUsr_nm());                  // 사용자 성명
 		  	       session.setAttribute("usrMnuAtrt", listUsrMnuAtrtModel);
 		  	       session.setAttribute("userType", lgnInfoModel.getMem_author());            // 로그린 사용자 권란       A: 관리자       B: 기업회원    C:일반회원
 		  	       session.setAttribute("serverName", request.getServerName());
-		  	
-		  	       resultMap.put("loginId",lgnInfoModel.getLgn_id()); 
-		  	       resultMap.put("userNm",lgnInfoModel.getUsr_nm()); 
+
+		  	       resultMap.put("loginId",lgnInfoModel.getLgn_id());
+		  	       resultMap.put("userNm",lgnInfoModel.getUsr_nm());
 		  	       resultMap.put("usrMnuAtrt", listUsrMnuAtrtModel);
 		  	       resultMap.put("userType", lgnInfoModel.getMem_author());
 		  	       resultMap.put("serverName", request.getServerName());
 			} else {
-	
+
 		         result = "FALSE";
 		         resultMsg = "사용자 로그인 정보가 일치하지 않습니다.";
 		    }
 
-	            
-	    
+
+
 		    resultMap.put("result", result);
 		    resultMap.put("resultMsg", resultMsg);
 		    resultMap.put("serverName", request.getServerName());
-	  
+
 		  } catch (Exception e) {
 			    e.printStackTrace();
-		  }	  
-	  
-	  
+		  }
+
+
 	    logger.info("+ End LoginController.loginProc.do");
 
 	    return resultMap;
 }*/
-	   
-	   
-	   /**
-	* 로그아웃
-	* @param request
-	* @param response
-	* @param session
-	* @return
-	*/
-	   @RequestMapping(value = "/loginOut.do")
-	   public ModelAndView loginOut(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
-	                  
-	      ModelAndView mav = new ModelAndView();
-	      session.invalidate();
-	      mav.setViewName("redirect:/login");
-	      
-	      return mav;
-	   }
 
-       /* 회원가입 - 일반회원 */
-       // 4. 일반 회원 가입
-       @RequestMapping("/register.do")
-       @ResponseBody
-       public Map<String, Object> registerUser(Model model, @RequestParam Map<String, Object> paramMap,
-                                               HttpServletRequest request, HttpServletResponse response, HttpSession session) throws Exception {
-           logger.info("+ Start " + className + ".registerUser");
-           logger.info("   - paramMap : " + paramMap);
 
-           String action = (String) paramMap.get("action");
-           String result = "SUCCESS";
-           String resultMsg;
+    /**
+     * 로그아웃
+     * @param request
+     * @param response
+     * @param session
+     * @return
+     */
+    @RequestMapping(value = "/loginOut.do")
+    public ModelAndView loginOut(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
 
-           if ("I".equals(action)) {
-               paramMap.put("status_yn", "Y");
-               loginService.registerUser(paramMap);
-               resultMsg = "가입 요청 완료";
-           } else {
+        ModelAndView mav = new ModelAndView();
+        session.invalidate();
+        mav.setViewName("redirect:/login");
 
-               result = "FAIL";
-               resultMsg = "가입 요청 실패";
-           }
+        return mav;
+    }
 
-           Map<String, Object> resultMap = new HashMap<String, Object>();
-           resultMap.put("result", result);
-           resultMap.put("resultMsg", resultMsg);
+    /* 회원가입 - 일반회원 */
+    // 4. 일반 회원 가입
+    @RequestMapping({"/register.do", "/api/register.do"})
+    @ResponseBody
+    public Map<String, Object> registerUser(Model model, @RequestParam Map<String, Object> paramMap, HttpServletRequest request, HttpServletResponse response, HttpSession session) throws Exception {
 
-           logger.info("+ End " + className + ".registerUser");
+        logger.info("+ Start " + className + ".registerUser");
+        logger.info("   - paramMap : " + paramMap);
 
-           return resultMap;
-       }
+        String action = (String) paramMap.get("action");
+
+        // 필수값
+        String loginID = (String) paramMap.get("loginID");
+        String password = (String) paramMap.get("password");
+        String name = (String) paramMap.get("name");
+        String birthday = (String)paramMap.get("birthday");
+        String email = (String) paramMap.get("email");
+        String addr = (String)paramMap.get("addr");
+        String addrDetail = (String) paramMap.get("addr_detail");
+        String team = (String) paramMap.get("team");
+        String hp = (String) paramMap.get("hp");
+
+        if (loginID == null || loginID.isBlank()
+                || password == null || password.isBlank()
+                || name == null || name.isBlank()
+                || birthday == null || birthday.isBlank()
+                || email == null || email.isBlank()
+                || addr == null || addr.isBlank()
+                || addrDetail == null || addrDetail.isBlank()
+                || team == null || team.isBlank()
+                || hp == null || hp.isBlank()) {
+
+            Map<String, Object> rm = new HashMap<>();
+            rm.put("result", "FAIL");
+            rm.put("resultMsg", "필수 입력값이 누락되었습니다.");
+            return rm;
+        }
+
+        String result = "SUCCESS";
+        String resultMsg;
+
+        if ("I".equals(action)) {
+            paramMap.put("status_yn", "Y");
+            loginService.registerUser(paramMap);
+            resultMsg = "가입 요청 완료";
+        } else {
+            result = "FAIL";
+            resultMsg = "가입 요청 실패";
+        }
+
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("result", result);
+        resultMap.put("resultMsg", resultMsg);
+        logger.info("+ End " + className + ".registerUser");
+        return resultMap;
+    }
 
     // 5. 아이디 중복 확인
-    @RequestMapping("/checkDuplicatedloginID")
+    @RequestMapping({"/checkDuplicatedloginID", "/api/checkDuplicatedloginID"})
     @ResponseBody
     public ResponseEntity<Map<String, Object>> checkDuplicatedloginID(Model model, @RequestParam Map<String, Object> paramMap,
                                                                       HttpServletRequest request, HttpServletResponse response, HttpSession session) throws Exception {
-        logger.info("+ Start " + className + ".loginID_check");
+        logger.info("+ Start " + className + ".checkDuplicatedloginID");
 
         String loginID = (String) paramMap.get("loginID");
         Map<String, Object> resultMap = new HashMap<>();
-        HttpStatus status = null;
-        String result = null;
-        String resultMsg = null;
-        int duplicationVal = loginService.checkDuplicatedLoginID(loginID);
+
+        // 기본값 - 성공
+        HttpStatus status = HttpStatus.OK;
+        String result = "SUCCESS";
+        String resultMsg = "사용 가능한 아이디입니다.";
+
+        int duplicationVal =  0;
 
         try {
-            if("N".equals(loginService.selectFindId(paramMap).getStatus_yn())) {
-                result = "FAIL";
-                resultMsg = "비활성화된 계정이 있습니다.";
-                status = HttpStatus.UNAUTHORIZED;
-            } else if(duplicationVal > 0) {
-                result = "FAIL";
-                resultMsg = "이미 가입된 아이디가 있습니다.";
-                status = HttpStatus.FORBIDDEN;
+            // 1. 아이디 중복 확인 (0: 없음, >0: 있음)
+            duplicationVal = loginService.checkDuplicatedLoginID(loginID);
+
+            if (duplicationVal > 0) {
+                // 2. ID가 이미 존재하는 경우: 세부 정보 확인
+                LgnInfoModel existingUser = loginService.selectFindId(paramMap);
+
+                if (existingUser != null && "N".equals(existingUser.getStatus_yn())) {
+                    // Case: ID는 존재하고 상태가 'N'(비활성화)인 경우
+                    result = "FAIL";
+                    resultMsg = "비활성화된 계정으로 등록되어 있습니다.";
+                    status = HttpStatus.UNAUTHORIZED; // 401 Unauthorized
+                } else {
+                    // Case: ID가 존재하고 활성화 상태인 경우 (단순 중복)
+                    result = "FAIL";
+                    resultMsg = "이미 가입된 아이디가 있습니다.";
+                    status = HttpStatus.CONFLICT; // 409 Conflict
+                }
             }
+            // duplicationVal == 0 이면 초기 설정된 SUCCESS 상태를 유지함
+
         } catch(Exception e){
+            // 서버 오류 발생 시 처리
             result = "FAIL";
-            resultMsg = "서버 오류";
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-            logger.info(e);
+            resultMsg = "서버 오류 (예외 발생)";
+            status = HttpStatus.INTERNAL_SERVER_ERROR; // 500 Internal Server Error
+            logger.error("Error in checkDuplicatedloginID", e);
         }
 
-        if(!status.is4xxClientError()){
-            result = "SUCCESS";
-            resultMsg = "성공";
-            status = HttpStatus.OK;
-        }
+        // 프론트엔드가 기대하는 키로 결과 반환
+        resultMap.put("result", result);
+        resultMap.put("resultMsg", resultMsg);
 
-
-        resultMap.put(result, resultMsg);
-        logger.info("+ End " + className + ".loginID_check");
+        logger.info("+ End " + className + ".checkDuplicatedloginID");
         return new ResponseEntity<>(resultMap, status);
     }
 
+
     // 6. 이메일 중복 확인
-    @RequestMapping("/checkDuplicatedEmail")
+    @RequestMapping({"/checkDuplicatedEmail", "/api/checkDuplicatedEmail"})
     @ResponseBody
     public ResponseEntity<Map<String, Object>> check_email(Model model, @RequestParam Map<String, Object> paramMap, HttpServletRequest request,
                                                            HttpServletResponse response, HttpSession session) throws Exception {
@@ -289,9 +410,10 @@ public class LoginController {
         HttpStatus status = null;
         String result = null;
         String resultMsg = null;
-        int duplicationVal = loginService.checkDuplicatedEmail(email);
 
-        try {
+/*        try {
+            int duplicationVal = loginService.checkDuplicatedEmail(email);
+
             if("N".equals(loginService.selectFindId(paramMap).getStatus_yn())) {
                 result = "FAIL";
                 resultMsg = "비활성화된 계정이 있습니다.";
@@ -312,17 +434,36 @@ public class LoginController {
             result = "SUCCESS";
             resultMsg = "성공";
             status = HttpStatus.OK;
+        }*/
+
+        try {
+            int duplicationVal = loginService.checkDuplicatedEmail(email);
+
+            if (duplicationVal > 0) {
+                result = "FAIL";
+                resultMsg = "이미 가입된 이메일이 있습니다.";
+                status = HttpStatus.CONFLICT; // 409
+            } else {
+                result = "SUCCESS";
+                resultMsg = "사용 가능한 이메일입니다.";
+                status = HttpStatus.OK;
+            }
+        } catch (Exception e) {
+            result = "FAIL";
+            resultMsg = "서버 오류";
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
         }
 
-
-        resultMap.put(result, resultMsg);
+        resultMap.put("result", result);
+        resultMap.put("resultMsg", resultMsg);
         logger.info("+ End " + className + ".loginID_check");
 
         return new ResponseEntity<>(resultMap, status);
     }
 
+
     // 7. 아이디 찾기 (이름/이메일) 이메일과 이름 일치 여부 확인 뒤, 인증번호를 세션에다 저장후 200응답
-    @RequestMapping("/sendMailForFindID")
+    @RequestMapping({"/sendMailForFindID", "/api/sendMailForFindID"})
     public ResponseEntity<?> emailSendForIdAuth(Model model, HttpServletRequest request, HttpServletResponse response,
                                                 HttpSession session) throws Exception {
         logger.info("+ Start " + className + ".sendMail");
@@ -334,6 +475,7 @@ public class LoginController {
         paramMap.put("name", name);
         paramMap.put("email", emailNum);
 
+        // 존재여부
         int result = mailSendService.searchUserExist(paramMap);
         if (result == 0) {
             return new ResponseEntity<>("Fail, Not Found ID", HttpStatus.NOT_FOUND);
@@ -357,7 +499,7 @@ public class LoginController {
     }
 
     // 7-2. 이메일 인증 번호 대조 및 결과 반환, 받은 인증 번호를 세션에 저장한 값과 비교하고 맞을 시 유저정보 가져와서 응답.
-    @RequestMapping("/validation/id/mail")
+    @RequestMapping({"/validation/id/mail","/api/validation/id/mail"})
     public ResponseEntity<?> mailAuthComparisonForID(HttpServletRequest request, HttpServletResponse response,
                                                      HttpSession session) throws Exception {
         logger.info("+ Start " + className + ".mailAuthComparisonForID");
@@ -388,7 +530,7 @@ public class LoginController {
     // 7-3. 이메일 인증 취소 (필요한지 좀 더 고민, 세션 관리 부분에서 취소해야 하는지 여부)
 
     // 8. 비밀번호 찾기
-    @RequestMapping("/sendMailForFindPW")
+    @RequestMapping({"/sendMailForFindPW", "/api/sendMailForFindPW"})
     public ResponseEntity<?> emailSendForPwAuth(Model model, @RequestParam Map<String, Object> paramMap,
                                                 HttpServletRequest request, HttpServletResponse response, HttpSession session) throws Exception {
 
@@ -461,7 +603,7 @@ public class LoginController {
 
         String change_password = mailSendService.RandomNum();
 
-        paramMap.put("LoginID", model.getLoginID());
+        paramMap.put("loginID", model.getLoginID());
         paramMap.put("change_password", change_password);
 
         loginService.passwordChangeUpdate(paramMap);
