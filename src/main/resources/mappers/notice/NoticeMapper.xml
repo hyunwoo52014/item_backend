@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.happyjob.study.repository.notice.NoticeMapper">
+
+    <!-- VO 매핑 -->
+    <resultMap id="NoticeVOMap" type="kr.happyjob.study.vo.notice.NoticeVO">
+        <result property="notice_code" column="notice_code"/>
+        <result property="loginID"    column="loginID"/>
+        <result property="title"      column="title"/>
+        <result property="content"    column="content"/>
+        <result property="writeDate"  column="writeDate"/>
+    </resultMap>
+
+    <!-- 목록 -->
+    <select id="noticeList" parameterType="map" resultMap="NoticeVOMap">
+        SELECT
+        n.notice_code                                                   AS notice_code,
+        n.loginID                                                       AS loginID,
+        n.title                                                         AS title,
+        n.content                                                       AS content,
+        DATE_FORMAT(n.write_date, '%Y-%m-%d')                           AS writeDate
+        FROM tb_notice n
+        <where>
+            <if test="title != null and title != ''">
+                AND n.title LIKE CONCAT('%', #{title}, '%')
+            </if>
+            <if test="from_date != null and from_date != ''">
+                AND DATE(n.write_date) &gt;= STR_TO_DATE(#{from_date}, '%Y-%m-%d')
+            </if>
+            <if test="to_date != null and to_date != ''">
+                AND DATE(n.write_date) &lt;= STR_TO_DATE(#{to_date}, '%Y-%m-%d')
+            </if>
+        </where>
+        ORDER BY n.notice_code DESC
+        LIMIT #{pageIndex}, #{pageSize}
+    </select>
+
+    <!-- 카운트 (총 수) -->
+    <select id="noticeCnt" parameterType="map" resultType="int">
+        SELECT COUNT(1)
+        FROM tb_notice n
+        <where>
+            <if test="title != null and title != ''">
+                AND n.title LIKE CONCAT('%', #{title}, '%')
+            </if>
+            <if test="from_date != null and from_date != ''">
+                AND DATE(n.write_date) &gt;= STR_TO_DATE(#{from_date}, '%Y-%m-%d')
+            </if>
+            <if test="to_date != null and to_date != ''">
+                AND DATE(n.write_date) &lt;= STR_TO_DATE(#{to_date}, '%Y-%m-%d')
+            </if>
+        </where>
+    </select>
+
+    <!-- 상세 -->
+    <select id="noticeDetail" parameterType="map" resultMap="NoticeVOMap">
+        SELECT
+            n.notice_code                                 AS notice_code,
+            n.loginID                                     AS loginID,
+            n.title                                       AS title,
+            n.content                                     AS content,
+            DATE_FORMAT(n.write_date, '%Y-%m-%d')         AS writeDate
+        FROM tb_notice n
+        WHERE n.notice_code = #{notice_code}
+    </select>
+    <!-- 추가 -->
+    <insert id="insertNotice" parameterType="kr.happyjob.study.vo.notice.NoticeVO">
+        <selectKey resultType="int" keyProperty="notice_code" order="BEFORE">
+            SELECT COALESCE(MAX(notice_code), 0) + 1 FROM tb_notice
+        </selectKey>
+
+        INSERT INTO tb_notice (notice_code, loginID, title, content, write_date)
+        VALUES (#{notice_code}, #{loginID}, #{title}, #{content}, NOW())
+    </insert>
+
+    <!-- 수정 -->
+    <update id="updateNotice" parameterType="map">
+        UPDATE tb_notice
+        SET title      = #{title},
+            content    = #{content},
+            write_date = NOW()
+        WHERE notice_code = #{notice_code}
+    </update>
+
+    <!-- 삭제 -->
+    <delete id="deleteNotice" parameterType="map">
+        DELETE FROM tb_notice
+        WHERE notice_code = #{notice_code}
+    </delete>
+
+
+
+</mapper>
