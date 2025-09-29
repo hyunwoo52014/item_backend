@@ -12,8 +12,12 @@ happyjob3.iml
 .springBeans
 .sts4-cache
 
+### 의도하지 않은 파일 추가 방지 ###
 .idea
 node_modules
+package.json
+package-lock.json
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
