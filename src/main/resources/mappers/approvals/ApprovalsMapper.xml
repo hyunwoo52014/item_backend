@@ -31,8 +31,22 @@
     where loginId=#{loginID} and category_code=#{category_code} and product_detail_code=#{product_detail_code} and product_state='O';
 </update>
 
-<!--  (사용 요청일 경우) 관리자 [사용 요청] [거절] 버튼 눌렀을 때 동작   -->
+<insert id="insertUseHistoryOnApprove" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+    insert into tb_use_history(usage_code, category_code, product_detail_code, loginID, rental_date, name, productNo, productName, product_state)
+    values (#{usage_code},#{category_code},#{product_detail_code},#{loginID},CURRENT_DATE,#{name},#{product_no},#{product_name},#{approve});
+</insert>
 
+<!--  (사용 요청일 경우) 관리자 [사용 요청] [거절] 버튼 눌렀을 때 동작   -->
+    <update id="updateProductDetailOnReject" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+        update tb_product_detail
+        set rental_date=null, product_state='N', approve='N'
+        where category_code=#{category_code} and product_detail_code=#{product_detail_code};
+    </update>
+    <update id="updateUseHistoryOnReject" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+        update tb_use_history
+        set  product_state='N'
+        where loginId=#{loginID} and category_code=#{category_code} and product_detail_code=#{product_detail_code} and product_state='O';
+    </update>
 
 <!-- tb_use_history 부분에서 해당 제품이 몇 번 사용 되었는지 확인 -->
 <select id="getUsageCodeCount" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO" resultType="int">
@@ -41,10 +55,10 @@
 </select>
 
 
-<!-- (반납 요청일 경우) 관리자 [반납 요청] 승인 버튼 눌렀을 때 동작   -->
+<!-- (반납 요청일 경우) 관리자 [반납 요청] [승인] 버튼 눌렀을 때 동작   -->
 <update id="updateProductDetailOnReturn" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
     update tb_product_detail
-    set return_date=CURRENT_DATE, order_reason=null, product_state='N', approve='Y'
+    set loginID=null, order_date=null, rental_date=null, return_date=null, order_reason=null, product_state='N', approve='Y'
     where category_code=#{category_code} and product_detail_code=#{product_detail_code};
 </update>
 
@@ -52,14 +66,22 @@
     update tb_use_history
     set return_date = CURRENT_DATE,
         product_state='N'
-    where loginID=#{loginID} and category_code=#{category_code} and product_detail_code=#{product_detail_code};
+    where loginID=#{loginID} and category_code=#{category_code} and product_detail_code=#{product_detail_code} and product_state='R';
 </update>
 
+<!-- (반납 요청일 경우) 관리자 [반납 요청] [거절] 버튼 눌렀을 때 동작   -->
+    <update id="updateProductDetailOnReturnReject" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+        update tb_product_detail
+        set return_date=null, approve='N'
+        where category_code=#{category_code} and product_detail_code=#{product_detail_code};
+    </update>
 
+    <update id="updateUseHistoryOnReturnReject" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+        update tb_use_history
+        set product_state='N'
+        where loginID=#{loginID} and category_code=#{category_code} and product_detail_code=#{product_detail_code} and product_state='R';
+    </update>
 
-<!--  사용 요청 거절  -->
-
-<!-- 반납 요청 거절 -->
 
 
 </mapper>

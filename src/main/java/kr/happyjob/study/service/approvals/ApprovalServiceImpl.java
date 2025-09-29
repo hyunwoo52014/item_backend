@@ -6,10 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class ApprovalServiceImpl implements ApprovalsService{
@@ -59,41 +58,51 @@ public class ApprovalServiceImpl implements ApprovalsService{
      */
     @Transactional
     public int clickApprovalsBtn(ApprovalsVO approvalsVO){
-        int resultCnt1=0;
-        int resultCnt2=0;
+        int rc1=0, rc2=0;
         int resultCnt = 0;
         logger.info("serviceImpl-----------------------"+approvalsVO);
 
         if(approvalsVO.getProduct_state().equals("O")){
             //사용 요청이었을 경우
             //승인, 거절
-            if(approvalsVO.getApprove().equals("Y")){
-                resultCnt1+=am.updateProductDetailOnApprove(approvalsVO);
-                //approvalsVO.setUsage_code(am.getUsageCodeCount(approvalsVO)+1); //이건 insert일 때 필요하지
-                resultCnt2+=am.updateUseHistoryOnApprove(approvalsVO);
-                //만약 resultCnt가 2라면 잘 실행된거지.
-                resultCnt = resultCnt1+resultCnt2;
-            }else if(approvalsVO.getApprove().equals("N")){
-                resultCnt = 0;
-            }
+            if(approvalsVO.getApprove().equals("Y")){ //승인
+                rc1 += am.updateProductDetailOnApprove(approvalsVO);
+                rc2 = am.updateUseHistoryOnApprove(approvalsVO);
+                //근데 지금은 없을 수 있으니까, 없으면 내가 insert 해주자.
+                if(rc2 == 0){
+                    approvalsVO.setUsage_code(am.getUsageCodeCount(approvalsVO)+1); //이건 insert일 때 필요하지
+                    rc2 = am.insertUseHistoryOnApprove(approvalsVO);
+                }//end if
+                resultCnt = rc1+rc2;
+
+            }else if(approvalsVO.getApprove().equals("N")){ //거절
+                rc1 += am.updateProductDetailOnReject(approvalsVO);
+                rc2 += am.updateUseHistoryOnReject(approvalsVO);
+
+                //근데 지금은 없을 수 있으니까, 없으면 내가 insert 해주자.
+                if(rc2 == 0){
+                    approvalsVO.setUsage_code(am.getUsageCodeCount(approvalsVO)+1); //이건 insert일 때 필요하지
+                    rc2 = am.insertUseHistoryOnApprove(approvalsVO);
+                }//end if
+
+            }//end if~else
 
 
         }else if(approvalsVO.getProduct_state().equals("R")){
             //반납 요청이었을 경우
             //승인, 거절
             if(approvalsVO.getApprove().equals("Y")){
-                resultCnt1+=am.updateProductDetailOnReturn(approvalsVO);
-                resultCnt2+=am.updateUseHistoryOnReturn(approvalsVO);
-                resultCnt = resultCnt1+resultCnt2;
+                rc1 += am.updateProductDetailOnReturn(approvalsVO);
+                rc2 += am.updateUseHistoryOnReturn(approvalsVO);
             }else if(approvalsVO.getApprove().equals("N")){
-                resultCnt=0;
+                rc1 += am.updateProductDetailOnReturnReject(approvalsVO);
+                rc2 += am.updateUseHistoryOnReturnReject(approvalsVO);
             }
-
-
             //만약 resultCnt가 2라면 잘 실행된것.!
         }//end else if
+        resultCnt = rc1+rc2;
+        logger.info("resultCnt========"+resultCnt);
 
-        logger.info("ApprovalServiceImple ------ 흠......"+(resultCnt1+resultCnt2));
         return resultCnt;
     }//clickApprovalsBtn
 

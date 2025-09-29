@@ -12,9 +12,16 @@ public interface ApprovalsMapper {
     /* (관리자) 신청/반납 > 결재 : Pagination을 위한 총 column 수 반환 */
     public int getTotalApprovalCnt();
 
-    /* (관리자) 사용요청 승인 */
+    /* (관리자) 사용요청 [승인] */
     public int updateProductDetailOnApprove(ApprovalsVO approvalsVO);
     public int updateUseHistoryOnApprove(ApprovalsVO approvalsVO);
+    //만약에 history에 없으면.... 만듭시다...
+    public int insertUseHistoryOnApprove(ApprovalsVO approvalsVO);
+
+    /* (관리자) 사용요청 [거절] */
+    public int updateProductDetailOnReject(ApprovalsVO approvalsVO);
+    public int updateUseHistoryOnReject(ApprovalsVO approvalsVO);
+
 
     /**
      * (관리자) tb_use_history DB의 usage값 가져오기
@@ -24,8 +31,14 @@ public interface ApprovalsMapper {
     public int getUsageCodeCount(ApprovalsVO approvalsVO);
 
 
-    /* (관리자) 반납요청 승인 */
+    /* (관리자) 반납요청 [승인] */
     public int updateProductDetailOnReturn(ApprovalsVO approvalsVO);
     public int updateUseHistoryOnReturn(ApprovalsVO approvalsVO);
+    
+    
+    /* (관리자) 반납요청 [거절]*/
+    public int updateProductDetailOnReturnReject(ApprovalsVO approvalsVO);
+    public int updateUseHistoryOnReturnReject(ApprovalsVO approvalsVO);
+
 
 }//interface
