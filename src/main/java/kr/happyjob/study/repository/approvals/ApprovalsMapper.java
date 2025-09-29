@@ -42,5 +42,6 @@ public interface ApprovalsMapper {
     /* DB 가데이터가 이상해서 필요함....  */
     //만약에 history에 없으면.... 만듭시다...
     public int insertUseHistoryOnApprove(ApprovalsVO approvalsVO);
-    public int insertUseHistoryOnReject(ApprovalsVO approvalsVO);
+    public int insertUseHistoryOnRejectYes(ApprovalsVO approvalsVO);
+    public int insertUseHistoryOnRejectNo(ApprovalsVO approvalsVO);
 }//interface

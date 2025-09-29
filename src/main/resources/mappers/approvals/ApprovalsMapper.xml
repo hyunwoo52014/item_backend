@@ -44,7 +44,7 @@
 </update>
 <update id="updateUseHistoryOnReject" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
     update tb_use_history
-    set  product_state='N'
+    set  rental_date=null, product_state='N'
     where loginId=#{loginID} and category_code=#{category_code} and product_detail_code=#{product_detail_code} and product_state='O';
 </update>
 
@@ -65,27 +65,31 @@
 <update id="updateUseHistoryOnReturn" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
     update tb_use_history
     set return_date = CURRENT_DATE,
-        product_state='Y'
+        product_state='N'
     where loginID=#{loginID} and category_code=#{category_code} and product_detail_code=#{product_detail_code} and product_state='R';
 </update>
 
 <!-- (반납 요청일 경우) 관리자 [반납 요청] [거절] 버튼 눌렀을 때 동작   -->
 <update id="updateProductDetailOnReturnReject" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
     update tb_product_detail
-    set return_date=null, approve='N', product_state='N'
+    set return_date=null, product_state='Y', approve='N'
     where category_code=#{category_code} and product_detail_code=#{product_detail_code};
 </update>
 
 <update id="updateUseHistoryOnReturnReject" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
     update tb_use_history
-    set product_state='N'
+    set return_date=null, product_state='Y'
     where loginID=#{loginID} and category_code=#{category_code} and product_detail_code=#{product_detail_code} and product_state='R';
 </update>
 
 <!-- 지금 db 가데이터가 이상해서 필요함. -->
-<insert id="insertUseHistoryOnReject" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+<insert id="insertUseHistoryOnRejectYes" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
     insert into tb_use_history(usage_code, category_code, product_detail_code, loginID, rental_date, return_date,name, productNo, productName, product_state)
     values (#{usage_code},#{category_code},#{product_detail_code},#{loginID},CURRENT_DATE,CURRENT_DATE,#{name},#{product_no},#{product_name},'N');
+</insert>
+<insert id="insertUseHistoryOnRejectNo" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+    insert into tb_use_history(usage_code, category_code, product_detail_code, loginID, rental_date, return_date,name, productNo, productName, product_state)
+    values (#{usage_code},#{category_code},#{product_detail_code},#{loginID},CURRENT_DATE,null,#{name},#{product_no},#{product_name},'N');
 </insert>
 
 

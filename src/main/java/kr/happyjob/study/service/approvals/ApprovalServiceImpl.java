@@ -74,7 +74,6 @@ public class ApprovalServiceImpl implements ApprovalsService{
                     approvalsVO.setUsage_code(am.getUsageCodeCount(approvalsVO)+1); //이건 insert일 때 필요하지
                     rc2 = am.insertUseHistoryOnApprove(approvalsVO);
                 }//end if
-                resultCnt = rc1+rc2;
 
             }else if(approvalsVO.getApprove().equals("N")){
                 //거절
@@ -99,7 +98,7 @@ public class ApprovalServiceImpl implements ApprovalsService{
                 rc2 = am.updateUseHistoryOnReturn(approvalsVO);
                 if(rc2 == 0){
                     approvalsVO.setUsage_code(am.getUsageCodeCount(approvalsVO)+1); //이건 insert일 때 필요하지
-                    rc2 = am.insertUseHistoryOnReject(approvalsVO);
+                    rc2 = am.insertUseHistoryOnRejectYes(approvalsVO);
                 }//end if
                 logger.info("rc1 "+rc1+", "+"rc2 "+rc2);
             }else if(approvalsVO.getApprove().equals("N")){
@@ -110,7 +109,7 @@ public class ApprovalServiceImpl implements ApprovalsService{
                 if(rc2 == 0){
                     logger.info("반납 거절===>"+approvalsVO);
                     approvalsVO.setUsage_code(am.getUsageCodeCount(approvalsVO)+1); //이건 insert일 때 필요하지
-                    rc2 = am.insertUseHistoryOnReject(approvalsVO);
+                    rc2 = am.insertUseHistoryOnRejectNo(approvalsVO);
                 }//end if
                 logger.info("rc1 "+rc1+", "+"rc2 "+rc2);
             }
