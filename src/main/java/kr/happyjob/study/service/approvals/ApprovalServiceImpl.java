@@ -63,10 +63,10 @@ public class ApprovalServiceImpl implements ApprovalsService{
         logger.info("serviceImpl-----------------------"+approvalsVO);
 
         if(approvalsVO.getProduct_state().equals("O")){
-            //사용 요청이었을 경우
+            /* 사용 요청이었을 경우 */
             //승인, 거절
             if(approvalsVO.getApprove().equals("Y")){ //승인
-                rc1 += am.updateProductDetailOnApprove(approvalsVO);
+                rc1 = am.updateProductDetailOnApprove(approvalsVO);
                 rc2 = am.updateUseHistoryOnApprove(approvalsVO);
                 //근데 지금은 없을 수 있으니까, 없으면 내가 insert 해주자.
                 if(rc2 == 0){
@@ -76,8 +76,8 @@ public class ApprovalServiceImpl implements ApprovalsService{
                 resultCnt = rc1+rc2;
 
             }else if(approvalsVO.getApprove().equals("N")){ //거절
-                rc1 += am.updateProductDetailOnReject(approvalsVO);
-                rc2 += am.updateUseHistoryOnReject(approvalsVO);
+                rc1 = am.updateProductDetailOnReject(approvalsVO);
+                rc2 = am.updateUseHistoryOnReject(approvalsVO);
 
                 //근데 지금은 없을 수 있으니까, 없으면 내가 insert 해주자.
                 if(rc2 == 0){
@@ -89,14 +89,26 @@ public class ApprovalServiceImpl implements ApprovalsService{
 
 
         }else if(approvalsVO.getProduct_state().equals("R")){
-            //반납 요청이었을 경우
+            /* 반납 요청이었을 경우  */
             //승인, 거절
-            if(approvalsVO.getApprove().equals("Y")){
-                rc1 += am.updateProductDetailOnReturn(approvalsVO);
-                rc2 += am.updateUseHistoryOnReturn(approvalsVO);
-            }else if(approvalsVO.getApprove().equals("N")){
-                rc1 += am.updateProductDetailOnReturnReject(approvalsVO);
-                rc2 += am.updateUseHistoryOnReturnReject(approvalsVO);
+            if(approvalsVO.getApprove().equals("Y")){ //승인
+                rc1 = am.updateProductDetailOnReturn(approvalsVO);
+                rc2 = am.updateUseHistoryOnReturn(approvalsVO);
+                if(rc2 == 0){
+                    approvalsVO.setUsage_code(am.getUsageCodeCount(approvalsVO)+1); //이건 insert일 때 필요하지
+                    rc2 = am.insertUseHistoryOnReject(approvalsVO);
+                }//end if
+                logger.info("rc1 "+rc1+", "+"rc2 "+rc2);
+            }else if(approvalsVO.getApprove().equals("N")){ // 거절
+                rc1 = am.updateProductDetailOnReturnReject(approvalsVO); // 이미 approve는 n이야....
+                rc2 = am.updateUseHistoryOnReturnReject(approvalsVO);
+
+                if(rc2 == 0){
+                    logger.info("반납 거절===>"+approvalsVO);
+                    approvalsVO.setUsage_code(am.getUsageCodeCount(approvalsVO)+1); //이건 insert일 때 필요하지
+                    rc2 = am.insertUseHistoryOnReject(approvalsVO);
+                }//end if
+                logger.info("rc1 "+rc1+", "+"rc2 "+rc2);
             }
             //만약 resultCnt가 2라면 잘 실행된것.!
         }//end else if

@@ -15,8 +15,7 @@ public interface ApprovalsMapper {
     /* (관리자) 사용요청 [승인] */
     public int updateProductDetailOnApprove(ApprovalsVO approvalsVO);
     public int updateUseHistoryOnApprove(ApprovalsVO approvalsVO);
-    //만약에 history에 없으면.... 만듭시다...
-    public int insertUseHistoryOnApprove(ApprovalsVO approvalsVO);
+
 
     /* (관리자) 사용요청 [거절] */
     public int updateProductDetailOnReject(ApprovalsVO approvalsVO);
@@ -40,5 +39,8 @@ public interface ApprovalsMapper {
     public int updateProductDetailOnReturnReject(ApprovalsVO approvalsVO);
     public int updateUseHistoryOnReturnReject(ApprovalsVO approvalsVO);
 
-
+    /* DB 가데이터가 이상해서 필요함....  */
+    //만약에 history에 없으면.... 만듭시다...
+    public int insertUseHistoryOnApprove(ApprovalsVO approvalsVO);
+    public int insertUseHistoryOnReject(ApprovalsVO approvalsVO);
 }//interface
