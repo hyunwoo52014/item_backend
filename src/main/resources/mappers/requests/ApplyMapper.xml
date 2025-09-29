@@ -141,7 +141,7 @@
 
     <!-- 등록 -->
     <update id="applyReg" parameterType="map">
-        <!-- tb_product_detail 상태를 'O'(사용신청)로 업데이트 -->
+        /* ApplyMapper.applyReg */
         UPDATE tb_product_detail
         SET product_state = 'O',
             order_date = NOW(),
@@ -149,6 +149,47 @@
             loginID = #{loginID}
         WHERE product_detail_code = #{product_detail_code}
     </update>
+
+    <!-- tb_use_history 삽입 (사용신청 시) -->
+    <!-- tb_use_history 삽입 (사용신청 시) -->
+    <insert id="insertUseHistory" parameterType="map">
+        /* ApplyMapper.insertUseHistory */
+        INSERT INTO tb_use_history (
+            usage_code,
+            category_code,
+            product_detail_code,
+            rental_date,
+            return_date,
+            name,
+            loginID,
+            productNo,
+            productName,
+            product_state
+        )
+        SELECT
+            COALESCE(
+                    (
+                        SELECT MAX(uh.usage_code) + 1
+                        FROM tb_use_history uh
+                        WHERE uh.category_code = pd.category_code
+                          AND uh.product_detail_code = pd.product_detail_code
+                    ),
+                    1
+            ) AS usage_code,
+            pd.category_code,
+            pd.product_detail_code,
+            NULL AS rental_date,
+            NULL AS return_date,
+            ui.name,
+            #{loginID} AS loginID,
+            pd.product_no AS productNo,
+            pi.product_name AS productName,
+            'O' AS product_state
+        FROM tb_product_detail pd
+                 JOIN tb_product_info pi ON pd.product_no = pi.product_no
+                 JOIN tb_userinfo ui ON ui.loginID = #{loginID}
+        WHERE pd.product_detail_code = #{product_detail_code}
+    </insert>
 
     <!-- 반납 -->
     <update id="applyReturn" parameterType="map">

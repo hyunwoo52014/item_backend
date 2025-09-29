@@ -19,6 +19,7 @@ public interface ApplyMapper {
     int applyCancel(Map<String, Object> paramMap) throws Exception;
 
     List<Map<String, Object>> getCategories() throws Exception;
+
+    // tb_use_history 삽입 메소드 추가
+    int insertUseHistory(Map<String, Object> paramMap) throws Exception;
 }
-
-
