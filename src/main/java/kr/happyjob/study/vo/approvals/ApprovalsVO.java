@@ -22,7 +22,10 @@ public class ApprovalsVO {
 
     private String order_reason; //신청 사유
 
+    private String approve; // 승인 유무
+
     private String product_state; // 제품 상태
+    private String product_state_str; // 제품 상태 (한글)
 
 
     /********************************************************************/
@@ -123,6 +126,22 @@ public class ApprovalsVO {
         this.product_state = product_state;
     }
 
+    public String getProduct_state_str() {
+        return product_state_str;
+    }
+
+    public void setProduct_state_str(String product_state_str) {
+        this.product_state_str = product_state_str;
+    }
+
+    public String getApprove() {
+        return approve;
+    }
+
+    public void setApprove(String approve) {
+        this.approve = approve;
+    }
+
     @Override
     public String toString() {
         return "ApprovalsVO{" +
@@ -138,6 +157,7 @@ public class ApprovalsVO {
                 ", return_date=" + return_date +
                 ", order_reason='" + order_reason + '\'' +
                 ", product_state='" + product_state + '\'' +
+                ", product_state_str='" + product_state_str + '\'' +
                 '}';
     }
 }//end class

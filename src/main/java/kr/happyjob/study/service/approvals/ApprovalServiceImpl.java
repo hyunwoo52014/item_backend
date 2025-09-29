@@ -26,13 +26,14 @@ public class ApprovalServiceImpl implements ApprovalsService{
     public List<ApprovalsVO> showApprovalsList(){
         List<ApprovalsVO> list=am.getApprovalsList();
         String status=null;
+        //여기서 id를 집어넣어야해..........
 
         for(int i=0; i<list.toArray().length; i++){
             status=list.get(i).getProduct_state();
             if(status.equals("O")){
-                list.get(i).setProduct_state("사용신청");
+                list.get(i).setProduct_state_str("사용신청");
             }else if(status.equals("R")){
-                list.get(i).setProduct_state("반납신청");
+                list.get(i).setProduct_state_str("반납신청");
             }//end if~else
         }//end for
 
@@ -50,37 +51,51 @@ public class ApprovalServiceImpl implements ApprovalsService{
         return cnt;
     }// end totalCnt
 
+
+
     /**
      * 승인 버튼을 눌렀을 때 실행 <br/>
      * @return 성공 실행한 쿼리문 cnt
      */
     @Transactional
     public int clickApprovalsBtn(ApprovalsVO approvalsVO){
-        int resultCnt=0;
+        int resultCnt1=0;
+        int resultCnt2=0;
+        int resultCnt = 0;
+        logger.info("serviceImpl-----------------------"+approvalsVO);
 
         if(approvalsVO.getProduct_state().equals("O")){
             //사용 요청이었을 경우
-            resultCnt+=am.updateProductDetailOnApprove(approvalsVO);
-            approvalsVO.setUsage_code(am.getUsageCodeCount(approvalsVO)+1);
-            resultCnt+=am.insertUseHistoryOnApprove(approvalsVO);
+            //승인, 거절
+            if(approvalsVO.getApprove().equals("Y")){
+                resultCnt1+=am.updateProductDetailOnApprove(approvalsVO);
+                //approvalsVO.setUsage_code(am.getUsageCodeCount(approvalsVO)+1); //이건 insert일 때 필요하지
+                resultCnt2+=am.updateUseHistoryOnApprove(approvalsVO);
+                //만약 resultCnt가 2라면 잘 실행된거지.
+                resultCnt = resultCnt1+resultCnt2;
+            }else if(approvalsVO.getApprove().equals("N")){
+                resultCnt = 0;
+            }
 
-            //만약 resultCnt가 2라면 잘 실행된거지.
 
         }else if(approvalsVO.getProduct_state().equals("R")){
             //반납 요청이었을 경우
-            resultCnt+=am.updateProductDetailOnReturn(approvalsVO);
-            resultCnt+=am.updateUseHistoryOnReturn(approvalsVO);
+            //승인, 거절
+            if(approvalsVO.getApprove().equals("Y")){
+                resultCnt1+=am.updateProductDetailOnReturn(approvalsVO);
+                resultCnt2+=am.updateUseHistoryOnReturn(approvalsVO);
+                resultCnt = resultCnt1+resultCnt2;
+            }else if(approvalsVO.getApprove().equals("N")){
+                resultCnt=0;
+            }
+
 
             //만약 resultCnt가 2라면 잘 실행된것.!
-
         }//end else if
 
+        logger.info("ApprovalServiceImple ------ 흠......"+(resultCnt1+resultCnt2));
         return resultCnt;
     }//clickApprovalsBtn
-
-    //승인 버튼을 누르면, 승인이 완료되었습니다. 팝업 ( 초록색)
-    //거절 버튼을 누르면, 거절되었습니다. 팝업 (빨간색)
-
 
 
 }//end class

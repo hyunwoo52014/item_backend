@@ -43,9 +43,10 @@ public class ApprovalsRestController {
     @RequestMapping("/approvals/clickApprovals")
     public int clickApprovals(@RequestBody ApprovalsVO approvalsVO){
         int resultCnt=0;
-
+        logger.info("controller======================="+approvalsVO);
         //만약 resultCnt가 2라면 잘 실행된것.! (사용신청, 반납신청 모두 resultCnt가 2라면 잘 실행된거임.)
         resultCnt = as.clickApprovalsBtn(approvalsVO);
+        logger.info("Controller resultCnt -----"+resultCnt);
         return resultCnt;
     }//end clickApprovals
 

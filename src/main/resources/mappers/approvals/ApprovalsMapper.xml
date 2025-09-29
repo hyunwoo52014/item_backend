@@ -4,7 +4,7 @@
 
 <!-- (관리자) 신청/반납 > 결재 부분 : 전체 목록 select   -->
 <select id="getApprovalsList" resultType="kr.happyjob.study.vo.approvals.ApprovalsVO">
-    select pd.category_code,pd.product_detail_code,ui.name, pinfo.product_name,pd.order_date, pd.product_state, pd.order_reason
+    select pd.category_code,pd.product_detail_code,ui.loginID,ui.name, pinfo.product_name,pd.order_date, pd.product_state, pd.order_reason, pd.approve
     from tb_product_detail pd
     left outer join tb_userinfo ui on pd.loginID = ui.loginID
     left outer join tb_product_info pinfo on pd.product_no = pinfo.product_no
@@ -19,16 +19,20 @@
     ;
 </select>
 
-<!--  (사용 요청일 경우) 관리자 사용 요청 승인 버튼 눌렀을 때 동작   -->
+<!--  (사용 요청일 경우) 관리자 [사용 요청] [승인] 버튼 눌렀을 때 동작   -->
 <update id="updateProductDetailOnApprove" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
     update tb_product_detail
     set rental_date=CURRENT_DATE, order_reason=null, product_state='Y', approve='Y'
     where category_code=#{category_code} and product_detail_code=#{product_detail_code};
 </update>
-<insert id="insertUseHistoryOnApprove" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
-    insert into tb_use_history(usage_code, category_code, product_detail_code, loginID, rental_date, name, productNo, productName, product_state)
-    values (#{usage_code},#{category_code},#{product_detail_code},#{loginID},CURRENT_DATE,#{name},#{product_no},#{product_name},'Y');
-</insert>
+<update id="updateUseHistoryOnApprove" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+    update tb_use_history
+    set rental_date=current_date, product_state='Y'
+    where loginId=#{loginID} and category_code=#{category_code} and product_detail_code=#{product_detail_code} and product_state='O';
+</update>
+
+<!--  (사용 요청일 경우) 관리자 [사용 요청] [거절] 버튼 눌렀을 때 동작   -->
+
 
 <!-- tb_use_history 부분에서 해당 제품이 몇 번 사용 되었는지 확인 -->
 <select id="getUsageCodeCount" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO" resultType="int">
@@ -37,7 +41,7 @@
 </select>
 
 
-<!-- (반납 요청일 경우) 관리자 사용 요청 승인 버튼 눌렀을 때 동작   -->
+<!-- (반납 요청일 경우) 관리자 [반납 요청] 승인 버튼 눌렀을 때 동작   -->
 <update id="updateProductDetailOnReturn" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
     update tb_product_detail
     set return_date=CURRENT_DATE, order_reason=null, product_state='N', approve='Y'
@@ -50,6 +54,8 @@
         product_state='N'
     where loginID=#{loginID} and category_code=#{category_code} and product_detail_code=#{product_detail_code};
 </update>
+
+
 
 <!--  사용 요청 거절  -->
 

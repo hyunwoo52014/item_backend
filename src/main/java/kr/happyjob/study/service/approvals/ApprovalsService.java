@@ -16,4 +16,7 @@ public interface ApprovalsService {
 
     /* (관리자) 승인 버튼을 눌렀을 때 실행 */
     public int clickApprovalsBtn(ApprovalsVO approvalsVO);
+
+
+
 }//end interface

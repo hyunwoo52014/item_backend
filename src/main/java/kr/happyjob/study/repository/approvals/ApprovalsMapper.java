@@ -14,7 +14,7 @@ public interface ApprovalsMapper {
 
     /* (관리자) 사용요청 승인 */
     public int updateProductDetailOnApprove(ApprovalsVO approvalsVO);
-    public int insertUseHistoryOnApprove(ApprovalsVO approvalsVO);
+    public int updateUseHistoryOnApprove(ApprovalsVO approvalsVO);
 
     /**
      * (관리자) tb_use_history DB의 usage값 가져오기
