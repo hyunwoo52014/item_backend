@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.happyjob.study.repository.asset.InboundMapper">
+    <!-- import list 조회 -->
+    <select id="searchImport" resultType="kr.happyjob.study.vo.asset.InboundModel">
+        /*kr.happy.study.asset.inbound.dao.InboundDao.searchImport*/
+        SELECT
+        tbIm.import_code AS importNumber,
+        tbIn.product_name AS productName,
+        tbIm.vendor_name AS vendorName,
+        tbIm.import_date AS importDate,
+        tbIm.quantity AS importQuantity
+        FROM
+        tb_product_import AS tbIm,
+        tb_product_info AS tbIn
+        WHERE
+        tbIm.product_no = tbIn.product_no
+        <if test="(searchTitle != null) and (!searchTitle.equals(''))">
+            <choose>
+                <when test="searchSel=='vendor_nm'">
+                    AND tbIm.vendor_name LIKE CONCAT("%", #{searchTitle}, "%")
+                </when>
+                <when test="searchSel=='product_nm'">
+                    AND tbIn.product_name LIKE CONCAT("%", #{searchTitle}, "%")
+                </when>
+                <otherwise>
+                    AND 1 = 2
+                </otherwise>
+            </choose>
+        </if>
+        ORDER BY tbIm.import_code DESC
+        LIMIT #{pageIndex}, #{pageSize}
+    </select>
+
+    <select id="countImportList" resultType='int'>
+        /*kr.happy.study.asset.inbound.dao.InboundDao.countImportList*/
+        SELECT
+        COUNT(*)
+        FROM
+        tb_product_import AS tbIm,
+        tb_product_info AS tbIn
+        WHERE
+        tbIm.product_no = tbIn.product_no
+        <if test="(searchTitle != null) and (!searchTitle.equals(''))">
+            <choose>
+                <when test="searchSel=='vendor_nm'">
+                    AND tbIm.vendor_name LIKE CONCAT("%", #{searchTitle}, "%")
+                </when>
+                <when test="searchSel=='product_nm'">
+                    AND tbIn.product_name LIKE CONCAT("%", #{searchTitle}, "%")
+                </when>
+                <otherwise>
+                    AND 1 = 1
+                </otherwise>
+            </choose>
+        </if>
+    </select>
+
+    <select id="searchImportDetail" resultType="kr.happyjob.study.vo.asset.InboundDetailModel">
+        /*kr.happy.study.asset.inbound.dao.InboundDao.searchImportDetail*/
+        SELECT
+            tbIn.product_name AS productName,
+            tbIm.vendor_name AS vendorName,
+            caCo.category_name AS categoryName,
+            tbIn .product_no AS porductNo,
+            tbIm.quantity AS quantity,
+            tbIm.price AS price,
+            tbIm.content AS content,
+            tbIm.import_date AS importDate,
+            tbIm.manager_name AS managerName
+        FROM
+            tb_product_import AS tbIm
+                INNER JOIN
+            tb_product_info AS tbIn
+            ON
+                tbIm.product_no = tbIn.product_no
+                INNER JOIN
+            tb_category_code AS caCo
+            ON
+                caCo.category_code = tbIn.category_code
+        WHERE import_code=#{importId}
+    </select>
+
+    <select id="searchVendors" resultType="String">
+        /*kr.happy.study.asset.inbound.dao.InboundDao.searchVendors*/
+        SELECT
+            detail_name
+        FROM
+            tb_detail_code
+        WHERE group_code= 'vendor'
+    </select>
+
+    <insert id="insertNewVendor">
+        /*kr.happy.study.asset.inbound.dao.InboundDao.insertNewVendor*/
+        INSERT
+        INTO tb_detail_code
+            (group_code, detail_code, detail_name, use_yn)
+        SELECT 'vendor',
+               CONCAT('v', LPAD(
+                       CAST(SUBSTRING(MAX(detail_code), 2) AS UNSIGNED) + 1, 2, '0'
+                           )),
+               #{vendor_name},
+               'Y'
+        FROM
+            tb_detail_code
+        WHERE
+            group_code='vendor'
+    </insert>
+
+    <insert id="insertProductInfo">
+        /*kr.happy.study.asset.inbound.dao.InboundDao.insertProductInfo*/
+        INSERT INTO tb_product_info VALUES (
+                                               #{newProductNo},
+                                               #{category_sel},
+                                               (SELECT detail_code FROM tb_detail_code
+                                                WHERE group_code = 'vendor' AND detail_name = #{vendor_name}),
+                                               #{vendor_name},
+                                               #{product_name},
+                                               #{import_quantity},
+                                               #{import_price}
+                                           )
+    </insert>
+
+
+    <select id="getNextProductNo" resultType="String">
+        /*kr.happy.study.asset.inbound.dao.InboundDao.getNextProductNo*/
+	      <![CDATA[
+        SELECT
+            @new_product_no := CASE
+		            WHEN current_max IS NULL
+		            THEN 'a'
+
+		            WHEN LENGTH(current_max) = 1 AND current_max < 'z'
+		            THEN CHAR(ASCII(current_max) + 1)
+
+		            WHEN LENGTH(current_max) = 1 AND current_max = 'z'
+		            THEN 'aa'
+
+		            WHEN LENGTH(current_max) = 2
+		            THEN
+		                CASE
+		                    WHEN RIGHT(current_max, 1) < 'z'
+		                    THEN CONCAT(LEFT(current_max, 1),
+		                               CHAR(ASCII(RIGHT(current_max, 1)) + 1))
+
+		                    WHEN RIGHT(current_max, 1) = 'z' AND LEFT(current_max, 1) < 'z'
+		                    THEN CONCAT(CHAR(ASCII(LEFT(current_max, 1)) + 1), 'a')
+
+		                    WHEN current_max = 'zz'
+		                    THEN 'aaa'
+        END
+        END
+        FROM (
+			    SELECT
+			        CASE
+
+			            WHEN EXISTS(SELECT 1 FROM tb_product_info WHERE LENGTH(product_no) >= 2 AND product_no REGEXP '^[a-z]+$')
+			            THEN (SELECT MAX(product_no) FROM tb_product_info WHERE LENGTH(product_no) >= 2 AND product_no REGEXP '^[a-z]+$')
+
+			            ELSE (SELECT MAX(product_no) FROM tb_product_info WHERE LENGTH(product_no) = 1 AND product_no REGEXP '^[a-z]+$')
+			        END AS current_max
+			) t
+        ]]>
+    </select>
+
+    <insert id="insertProductImport">
+        /*kr.happy.study.asset.inbound.dao.InboundDao.insertProductImport*/
+        INSERT INTO tb_product_import
+        (product_no, vendor_code, vendor_name, import_date, quantity, price, content, manager_name)
+        VALUES (
+                   #{newProductNo},
+                   (SELECT detail_code
+                    FROM tb_detail_code
+                    WHERE group_code = 'vendor'
+                      AND detail_name = #{vendor_name}),
+                   #{vendor_name},
+                   #{import_date},
+                   #{import_quantity},
+                   #{import_price},
+                   #{content_text},
+                   #{manager_name}
+               )
+    </insert>
+
+    <insert id="insertProductDetail">
+        /*kr.happy.study.asset.inbound.dao.InboundDao.insertProductDetail*/
+        INSERT INTO tb_product_detail
+            (category_code, product_detail_code, product_no, product_state)
+        SELECT
+            #{category_sel},
+            t.max_code + 1,
+            #{newProductNo},
+            'N'
+        FROM (
+                 SELECT IFNULL(MAX(product_detail_code), 0) AS max_code FROM tb_product_detail WHERE category_code=#{category_sel}
+             ) t
+    </insert>
+</mapper>
