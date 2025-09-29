@@ -19,7 +19,7 @@ public class ApprovalServiceImpl implements ApprovalsService{
 
 
     /**
-     * (관리자) 신청/반납 > 결제 : 사용신청 혹은 반납 신청 중인 것들을 모두 뿌려준다.
+     * (관리자) 신청/반납 > 결제 : 사용신청, 반납 신청 중인 것들을 모두 뿌려준다.
      * @return ApprvalsVO
      */
     public List<ApprovalsVO> showApprovalsList(){
@@ -53,7 +53,7 @@ public class ApprovalServiceImpl implements ApprovalsService{
 
 
     /**
-     * 승인 버튼을 눌렀을 때 실행 <br/>
+     * 사용 요청(승인, 거절), 반납 요청(승인, 거절) <br/>
      * @return 성공 실행한 쿼리문 cnt
      */
     @Transactional
@@ -64,8 +64,9 @@ public class ApprovalServiceImpl implements ApprovalsService{
 
         if(approvalsVO.getProduct_state().equals("O")){
             /* 사용 요청이었을 경우 */
-            //승인, 거절
-            if(approvalsVO.getApprove().equals("Y")){ //승인
+
+            if(approvalsVO.getApprove().equals("Y")){
+                //승인
                 rc1 = am.updateProductDetailOnApprove(approvalsVO);
                 rc2 = am.updateUseHistoryOnApprove(approvalsVO);
                 //근데 지금은 없을 수 있으니까, 없으면 내가 insert 해주자.
@@ -75,7 +76,8 @@ public class ApprovalServiceImpl implements ApprovalsService{
                 }//end if
                 resultCnt = rc1+rc2;
 
-            }else if(approvalsVO.getApprove().equals("N")){ //거절
+            }else if(approvalsVO.getApprove().equals("N")){
+                //거절
                 rc1 = am.updateProductDetailOnReject(approvalsVO);
                 rc2 = am.updateUseHistoryOnReject(approvalsVO);
 
@@ -90,8 +92,9 @@ public class ApprovalServiceImpl implements ApprovalsService{
 
         }else if(approvalsVO.getProduct_state().equals("R")){
             /* 반납 요청이었을 경우  */
-            //승인, 거절
-            if(approvalsVO.getApprove().equals("Y")){ //승인
+
+            if(approvalsVO.getApprove().equals("Y")){
+                //승인
                 rc1 = am.updateProductDetailOnReturn(approvalsVO);
                 rc2 = am.updateUseHistoryOnReturn(approvalsVO);
                 if(rc2 == 0){
@@ -99,7 +102,8 @@ public class ApprovalServiceImpl implements ApprovalsService{
                     rc2 = am.insertUseHistoryOnReject(approvalsVO);
                 }//end if
                 logger.info("rc1 "+rc1+", "+"rc2 "+rc2);
-            }else if(approvalsVO.getApprove().equals("N")){ // 거절
+            }else if(approvalsVO.getApprove().equals("N")){
+                // 거절
                 rc1 = am.updateProductDetailOnReturnReject(approvalsVO); // 이미 approve는 n이야....
                 rc2 = am.updateUseHistoryOnReturnReject(approvalsVO);
 
