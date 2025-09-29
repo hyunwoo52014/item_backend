@@ -20,5 +20,3 @@ public interface ApplyMapper {
 
     List<Map<String, Object>> getCategories() throws Exception;
 }
-
-

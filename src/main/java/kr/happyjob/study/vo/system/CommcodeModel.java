@@ -1,7 +1,18 @@
 package kr.happyjob.study.vo.system;
 
 public class CommcodeModel {
-	
+    private String group_code;
+    private String group_name;
+    private String note;
+    private String use_yn;
+    private String regId;
+    private String reg_date;
+    private String detail_code;
+    private String detail_name;
+    private String updateId;
+    private String update_date;
+    private String delyn;
+
 	public String getGroup_code() {
 		return group_code;
 	}
@@ -70,17 +81,7 @@ public class CommcodeModel {
 		this.delyn = delyn;
 	}
 
-	private String group_code;
-	private String group_name;
-	private String note;
-	private String use_yn;
-	private String regId;
-	private String reg_date;
-	private String detail_code;
-	private String detail_name;
-	private String updateId;
-	private String update_date;
-	private String delyn;
+
 	
 	
 }
