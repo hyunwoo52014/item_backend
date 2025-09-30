@@ -23,4 +23,10 @@ public interface ReturnsMapper {
      */
     public int returnAll(Map<String, Object> paramMap) throws Exception;
 
+
+    /**
+     * 장비 반납 신청 취소 (추가)
+     */
+    public int cancelReturn(Map<String, Object> paramMap) throws Exception;
+
 }

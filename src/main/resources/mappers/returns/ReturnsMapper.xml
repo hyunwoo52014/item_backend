@@ -50,4 +50,14 @@
           AND loginID = #{loginId}
     </update>
 
+    <update id="cancelReturn">
+        /*kr.happyjob.study.repository.returns.ReturnsMapper.cancelReturn*/
+        UPDATE tb_product_detail
+        SET product_state = 'Y'
+        WHERE
+        product_detail_code = #{productDetailCode}
+        AND loginID = #{loginId}
+        AND product_state = 'R'
+    </update>
+
 </mapper>
