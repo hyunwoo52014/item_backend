@@ -14,9 +14,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 
 @Controller
 @RequestMapping("/requests/")
@@ -28,6 +27,33 @@ public class RequestsController {
 
     public RequestsController(@Autowired HistoryService historyService) {
         this.historyService = historyService;
+    }
+
+    @RequestMapping("subCategoryList")
+    @ResponseBody
+    public List<String> subCategoryList(@RequestParam Map<String, Object> paramMap, HttpServletRequest request,
+                                               HttpServletResponse response,HttpSession session) {
+        logger.info("+ Start" + className + ".subCategoryList");
+        logger.info("+ >>>>>> paramMap" + paramMap);
+        Set<String> resultSet = historyService.subCategory(paramMap);
+        List<String> tempList = new ArrayList<>(resultSet);
+
+        if("status".equalsIgnoreCase((String)paramMap.get("flag"))) {
+            Set<String> tempSet = new HashSet<>();
+            for(String s : tempList) {
+                if("Y".equalsIgnoreCase(s)) {
+                    tempSet.add("승인");
+                } else if("N".equalsIgnoreCase(s) || "R".equalsIgnoreCase(s)) {
+                    tempSet.add("반려");
+                } else {
+                    tempSet.add("오류");
+                }
+            }
+            tempList = new ArrayList<>(tempSet);
+        }
+
+        logger.info("+ End" + className + ".subCategoryList");
+        return tempList;
     }
 
     @RequestMapping("historyList")
@@ -49,15 +75,25 @@ public class RequestsController {
         int pageSize = Integer.parseInt((String) paramMap.get("pageSize"));
         int pageIndex = (currentPage - 1) * pageSize;
 
-        paramMap.put("searchKey", paramMap.get("searchSel"));
-        paramMap.put("search", paramMap.get("searchTitle"));
-        paramMap.put("currentPage", currentPage);
         paramMap.put("pageIndex", pageIndex);
         paramMap.put("pageSize", pageSize);
 
         logger.info(" data check");
         for(Map.Entry<String, Object> entry : paramMap.entrySet()){
             logger.info("key : " + entry.getKey() + " value : " + entry.getValue());
+        }
+
+        if("승인".equalsIgnoreCase((String)paramMap.get("searchSubSel"))) {
+            paramMap.put("searchSubSel", "Y");
+        }
+
+        if("반려".equalsIgnoreCase((String)paramMap.get("searchSubSel"))) {
+            paramMap.put("searchSubSel_N", "N");
+            paramMap.put("searchSubSel_R", "R");
+        }
+
+        if("오류".equalsIgnoreCase((String)paramMap.get("searchSubSel"))){
+            paramMap.put("searchSubSel", null);
         }
 
         List<HistoryModel> modelList = historyService.historyList(paramMap);
