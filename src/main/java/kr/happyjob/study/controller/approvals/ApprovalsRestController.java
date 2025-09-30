@@ -1,6 +1,7 @@
 package kr.happyjob.study.controller.approvals;
 
 import kr.happyjob.study.service.approvals.ApprovalServiceImpl;
+import kr.happyjob.study.vo.approvals.ApprovalResponseVO;
 import kr.happyjob.study.vo.approvals.ApprovalSearchVO;
 import kr.happyjob.study.vo.approvals.ApprovalsVO;
 import org.slf4j.Logger;
@@ -25,33 +26,29 @@ public class ApprovalsRestController {
 
 //        List<ApprovalsVO> list=as.showApprovalsList();
         return as.showApprovalsList();
-    }//end showAllApprocalsList
+    }//end showAllApprovalsList
 
     /* 전체 신청 목록 갯수 출력 */
     @RequestMapping("/approvals/getTotalCnt")
     public int getTotalListCnt(){
-        int cnt=0;
-        cnt=as.totalCnt();
-
-        return cnt;
+        return as.totalCnt();
     }//end getTotalListCnt
 
 
     /* [사용요청], [반납요청] 버튼을 눌렀을 때 실행 */
     @RequestMapping("/approvals/clickApprovals")
     public int clickApprovals(@RequestBody ApprovalsVO approvalsVO){
-        int resultCnt=0;
-        logger.info("controller======================="+approvalsVO);
+        int resultCnt;
         //만약 resultCnt가 2라면 잘 실행된것.! (사용신청, 반납신청 모두 resultCnt가 2라면 잘 실행된거임.)
         resultCnt = as.clickApprovalsBtn(approvalsVO);
-        logger.info("Controller resultCnt -----"+resultCnt);
         return resultCnt;
     }//end clickApprovals
 
 
     /* 검색 버튼을 눌렀을 때 */
     @RequestMapping("/approvals/search")
-    public void clickSearchBtn(@RequestBody ApprovalSearchVO aSearchVO){
-
+    public ApprovalResponseVO<List<ApprovalsVO>> clickSearchBtn(@RequestBody ApprovalSearchVO aSearchVO){
+        logger.info("search 들어옵니까아아아아");
+        return as.clickSearchBtn(aSearchVO);
     }//end clickSearchBtn
 }//end class
