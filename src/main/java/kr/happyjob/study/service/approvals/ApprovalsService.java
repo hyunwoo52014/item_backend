@@ -1,6 +1,8 @@
 package kr.happyjob.study.service.approvals;
 
 
+import kr.happyjob.study.vo.approvals.ApprovalResponseVO;
+import kr.happyjob.study.vo.approvals.ApprovalSearchVO;
 import kr.happyjob.study.vo.approvals.ApprovalsVO;
 
 import java.util.List;
@@ -18,5 +20,7 @@ public interface ApprovalsService {
     public int clickApprovalsBtn(ApprovalsVO approvalsVO);
 
 
+    /* 검색 버튼을 눌렀을 때 */
+    public ApprovalResponseVO<List<ApprovalsVO>> clickSearchBtn(ApprovalSearchVO aSearchVO);
 
 }//end interface

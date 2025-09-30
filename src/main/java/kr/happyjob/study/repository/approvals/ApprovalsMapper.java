@@ -1,5 +1,6 @@
 package kr.happyjob.study.repository.approvals;
 
+import kr.happyjob.study.vo.approvals.ApprovalSearchVO;
 import kr.happyjob.study.vo.approvals.ApprovalsVO;
 import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
@@ -44,4 +45,9 @@ public interface ApprovalsMapper {
     public int insertUseHistoryOnApprove(ApprovalsVO approvalsVO);
     public int insertUseHistoryOnRejectYes(ApprovalsVO approvalsVO);
     public int insertUseHistoryOnRejectNo(ApprovalsVO approvalsVO);
+    
+    
+    /* 검색 */
+    public List<ApprovalsVO> selectSearchList(ApprovalSearchVO aSearchVO);
+    
 }//interface
