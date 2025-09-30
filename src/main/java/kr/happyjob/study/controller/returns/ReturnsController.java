@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -66,13 +67,18 @@ public class ReturnsController {
         paramMap.put("pageIndex", pageIndex);
         paramMap.put("loginId", loginId);
 
+        // 현재 페이지 데이터 조회
         List<ReturnsModel> returnsList = returnsService.returnsList(paramMap);
-        int returnsCnt = returnsService.returnsCnt(paramMap);
+
+        // 전체 데이터 수 조회 (필터 적용 후 전체 수)
+        int totalCount = returnsService.getTotalCount(paramMap); // <- 전체 건수 조회하는 서비스 메서드 사용
+        //int returnsCnt = returnsService.returnsCnt(paramMap);
 
         // Map에 데이터를 담아 JSON으로 반환
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("returnsList", returnsList);
-        resultMap.put("totalCount", returnsCnt);
+        resultMap.put("totalCount", totalCount);  // 전체 건수 전달
+        //resultMap.put("totalCount", returnsCnt);
         resultMap.put("pageSize", pageSize);
         resultMap.put("currentPage", currentPage);
 

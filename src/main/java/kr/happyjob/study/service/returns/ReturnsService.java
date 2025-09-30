@@ -14,14 +14,22 @@ public class ReturnsService {
     @Autowired
     ReturnsMapper returnsMapper;
 
+    // 현재 페이지 데이터 조회
     public List<ReturnsModel> returnsList(Map<String, Object> paramMap) throws Exception{
         return returnsMapper.returnsList(paramMap);
     }
 
+    // 전체 데이터 수 조회 (totalCount용)
+    public int getTotalCount(Map<String, Object> paramMap) throws Exception {
+        return returnsMapper.returnsCnt(paramMap); // 기존 returnsCnt 쿼리 그대로 사용
+    }
+
+    // 기존 returnsCnt 메서드 유지 (호환용)
     public int returnsCnt(Map<String, Object> paramMap) throws Exception{
         return returnsMapper.returnsCnt(paramMap);
     }
 
+    // 전체 반납 처리
     public int returnAll(Map<String, Object> paramMap) throws Exception {
         return returnsMapper.returnAll(paramMap);
     }
