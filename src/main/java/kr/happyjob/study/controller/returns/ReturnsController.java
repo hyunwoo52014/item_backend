@@ -60,7 +60,9 @@ public class ReturnsController {
         int pageSize = Integer.parseInt((String) paramMap.get("pageSize"));
         int pageIndex = (currentPage - 1) * pageSize;
 
-        String loginId = (String) paramMap.get("loginId");
+        //String loginId = (String) paramMap.get("loginId");
+        // 세션에서 안전하게 loginId를 가져옴
+        String loginId = (String) session.getAttribute("loginId");
 
         paramMap.put("currentPage", currentPage);
         paramMap.put("pageSize", pageSize);
@@ -122,6 +124,47 @@ public class ReturnsController {
 
         return returnMap;
     }
+
+    /**
+     * 장비 개별 반납 신청
+     * 클라이언트 요청 경로: /requests/returns/returnOne
+     */
+    @RequestMapping("returnOne") // 새로운 API 경로 정의
+    @ResponseBody
+    public Map<String,Object> returnOne(Model model, @RequestParam Map<String, Object> paramMap,
+                                        HttpServletRequest request, HttpServletResponse response, HttpSession session) throws Exception {
+
+        logger.info("+ Start " + className + ".returnOne");
+        logger.info("    - paramMap : " + paramMap);
+
+        Map<String,Object> returnMap = new HashMap<String,Object>();
+        String result = "";
+        String resultMsg = "";
+
+        try {
+            int res = returnsService.returnOne(paramMap);
+
+            if (res > 0) {
+                result = "SUCCESS";
+                resultMsg = "반납 신청이 완료되었습니다.";
+            } else {
+                result = "FAIL";
+                resultMsg = "반납 신청에 실패하였습니다. (장비 상태가 '사용 중'이 아니거나 권한이 없습니다.)";
+            }
+        } catch (Exception e) {
+            logger.error("장비 개별 반납 신청 처리 중 오류 발생: " + e.toString());
+            result = "ERROR";
+            resultMsg = "반납 신청 처리 중 오류가 발생했습니다.";
+        }
+
+        returnMap.put("result", result);
+        returnMap.put("resultMsg", resultMsg);
+
+        logger.info("+ End " + className + ".returnOne");
+
+        return returnMap;
+    }
+
 
     /**
      * 장비 반납 신청 취소 (추가)

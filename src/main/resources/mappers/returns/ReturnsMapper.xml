@@ -50,6 +50,17 @@
           AND loginID = #{loginId}
     </update>
 
+    <!-- 개별 반납 신청 -->
+    <update id="returnOne">
+        /*kr.happyjob.study.repository.returns.ReturnsMapper.returnOne*/
+        UPDATE tb_product_detail
+        SET product_state = 'R'     /* 상태를 'R'(반납 신청 중)으로 변경 */
+        WHERE
+            product_detail_code = #{productDetailCode} /* 특정 장비 코드만 */
+          AND loginID = #{loginId}
+          AND product_state = 'Y'   /* 현재 'Y'(사용 중)인 장비만 허용 */
+    </update>
+
     <update id="cancelReturn">
         /*kr.happyjob.study.repository.returns.ReturnsMapper.cancelReturn*/
         UPDATE tb_product_detail

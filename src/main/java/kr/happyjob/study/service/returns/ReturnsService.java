@@ -34,8 +34,14 @@ public class ReturnsService {
         return returnsMapper.returnAll(paramMap);
     }
 
+    // 개별 반납 처리
+    public int returnOne(Map<String, Object> paramMap) throws Exception {
+        return returnsMapper.returnOne(paramMap);
+    }
+
     // 장비 반납 신청 취소 (추가)
     public int cancelReturn(Map<String, Object> paramMap) throws Exception {
         return returnsMapper.cancelReturn(paramMap);
     }
+
 }
