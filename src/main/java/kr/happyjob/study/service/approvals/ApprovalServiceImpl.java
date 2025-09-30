@@ -1,6 +1,7 @@
 package kr.happyjob.study.service.approvals;
 
 import kr.happyjob.study.repository.approvals.ApprovalsMapper;
+import kr.happyjob.study.vo.approvals.ApprovalSearchVO;
 import kr.happyjob.study.vo.approvals.ApprovalsVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -120,6 +122,48 @@ public class ApprovalServiceImpl implements ApprovalsService{
 
         return resultCnt;
     }//clickApprovalsBtn
+
+    /* 검색 버튼을 눌렀을 때 */
+    public List<ApprovalsVO> clickSearchBtn(ApprovalSearchVO aSearchVO){
+        List<ApprovalsVO> list = new ArrayList<>();
+
+        //enhanced switch 방식
+        list= switch (aSearchVO.getSearchStr()){
+            case "all","itCode","name", "requestDate" -> searchList(aSearchVO);
+            default -> throw new IllegalArgumentException("잘못된 검색 조건" + aSearchVO.getSearchStr());
+        };
+
+
+        return list;
+    }//end clickSearchBtn
+
+
+    /* 검색 기능 */
+    private List<ApprovalsVO> searchList(ApprovalSearchVO aSearchVO){
+        List<ApprovalsVO> list = new ArrayList<>();
+
+        if(aSearchVO.getSearchStr().equals("itCode")){
+            aSearchVO=processSearchItCode(aSearchVO);
+
+        }//end if
+
+        return list;
+    }//end searchList
+
+
+    private ApprovalSearchVO processSearchItCode(ApprovalSearchVO aSearchVO){
+        //만약 itCode를 검색할 때 '-'가 있을 경우와 없을 경우
+        //근데 카테고리 코드는 입력했는데 detail 코드를 입력하지 않았을 경우 - 이건 mybatis에서 처리 완료
+        //카테고리 코드 입력 X, detail 코드 입력 O
+        if(aSearchVO.getSearchWordStr().contains("-")){
+            //지금 이걸 split 한다음에 split한 결과가 iht형인지 string 형인지 알아야해 - 아 이런걸 정규식 쓰는거네
+
+        }
+        return aSearchVO;
+    }// end searchList
+
+
+
 
 
 }//end class

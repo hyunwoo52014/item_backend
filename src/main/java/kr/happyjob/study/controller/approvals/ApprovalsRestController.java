@@ -1,6 +1,7 @@
 package kr.happyjob.study.controller.approvals;
 
 import kr.happyjob.study.service.approvals.ApprovalServiceImpl;
+import kr.happyjob.study.vo.approvals.ApprovalSearchVO;
 import kr.happyjob.study.vo.approvals.ApprovalsVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,7 @@ public class ApprovalsRestController {
     }//end getTotalListCnt
 
 
-    /* 승인 버튼을 눌렀을 때 실행 */
+    /* [사용요청], [반납요청] 버튼을 눌렀을 때 실행 */
     @RequestMapping("/approvals/clickApprovals")
     public int clickApprovals(@RequestBody ApprovalsVO approvalsVO){
         int resultCnt=0;
@@ -47,4 +48,10 @@ public class ApprovalsRestController {
         return resultCnt;
     }//end clickApprovals
 
+
+    /* 검색 버튼을 눌렀을 때 */
+    @RequestMapping("/approvals/search")
+    public void clickSearchBtn(@RequestBody ApprovalSearchVO aSearchVO){
+
+    }//end clickSearchBtn
 }//end class
