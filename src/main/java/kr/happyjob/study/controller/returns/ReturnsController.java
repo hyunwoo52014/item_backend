@@ -123,5 +123,40 @@ public class ReturnsController {
         return returnMap;
     }
 
+    /**
+     * 장비 반납 신청 취소 (추가)
+     * 요청 경로: /requests/returns/cancelReturn
+     */
+    @RequestMapping("cancelReturn")
+    @ResponseBody
+    public Map<String,Object> cancelReturn(Model model, @RequestParam Map<String, Object> paramMap, HttpServletRequest request,
+                                           HttpServletResponse response, HttpSession session) throws Exception {
+
+        logger.info("+ Start " + className + ".cancelReturn");
+        logger.info("    - paramMap : " + paramMap);
+
+        Map<String,Object> returnMap = new HashMap<String,Object>();
+        String result = "";
+        String resultMsg = "";
+
+        // 클라이언트에서 'productDetailCode'와 'loginId'를 파라미터로 보내주어야 함
+        int res = returnsService.cancelReturn(paramMap);
+
+        if (res > 0) {
+            result = "SUCCESS";
+            resultMsg = "취소되었습니다."; // 알람창 메시지
+        } else {
+            result = "FAIL";
+            resultMsg = "취소 처리에 실패하였습니다. (이미 처리되었거나 권한이 없습니다.)";
+        }
+
+        returnMap.put("result", result);
+        returnMap.put("resultMsg", resultMsg);
+
+        logger.info("+ End " + className + ".cancelReturn");
+
+        return returnMap;
+    }
+
 
 }
