@@ -103,12 +103,7 @@
     where (product_state='R' or product_state='O')
     <choose>
         <when test="searchStr == 'itCode'">
-            <if test="category_code != null and category_code != ''">
-                AND pd.category_code=#{category_code}
-            </if>
-            <if test="product_detail_code != null and product_detail_code != ''">
-                AND pd.product_detail_code=#{product_detail_code}
-            </if>
+                AND pd.category_code=#{category_code} AND pd.product_detail_code=#{product_detail_code}
         </when>
         <when test="searchStr == 'name'">
             AND ui.name=#{searchWordStr}
