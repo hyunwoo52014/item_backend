@@ -184,7 +184,7 @@ public class ReturnsController {
 
         // 클라이언트에서 'productDetailCode'와 'loginId'를 파라미터로 보내주어야 함
         int res = returnsService.cancelReturn(paramMap);
-
+        logger.info("res =======>" + res);
         if (res > 0) {
             result = "SUCCESS";
             resultMsg = "취소되었습니다."; // 알람창 메시지
