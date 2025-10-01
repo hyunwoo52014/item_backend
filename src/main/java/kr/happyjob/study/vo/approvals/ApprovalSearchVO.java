@@ -38,4 +38,6 @@ public class ApprovalSearchVO {
     public void setProduct_detail_code(int product_detail_code) {
         this.product_detail_code = product_detail_code;
     }
+
+    //
 }//class
