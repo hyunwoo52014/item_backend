@@ -42,12 +42,46 @@
         </where>
     </select>
 
+    <!-- 상태 상세 조회 -->
+    <select id="selectProductStateDetail" parameterType="map" resultType="kr.happyjob.study.vo.returns.ReturnsModel">
+        SELECT
+            pd.product_detail_code,
+            pd.category_code,
+            pd.product_no,
+            pd.loginID,
+            pd.order_date,
+            pd.rental_date,
+            pd.return_date,
+            pd.order_reason AS return_reason,  pd.product_state,
+            pd.approve,
+            ui.name AS user_name,
+            ui.regdate AS apply_date
+        FROM tb_product_detail pd
+                 LEFT JOIN tb_userinfo ui ON pd.loginID = ui.loginID
+        WHERE pd.product_detail_code = #{product_detail_code}
+          AND pd.category_code = #{category_code}
+    </select>
+
+
+
+
     <!-- 일괄 반납 신청 -->
     <update id="returnAll">
         UPDATE tb_product_detail
         SET product_state = 'R'
         WHERE product_state='Y'
           AND loginID = #{loginId}
+    </update>
+
+    <!-- 개별 반납 신청 -->
+    <update id="returnOne">
+        /*kr.happyjob.study.repository.returns.ReturnsMapper.returnOne*/
+        UPDATE tb_product_detail
+        SET product_state = 'R'     /* 상태를 'R'(반납 신청 중)으로 변경 */
+        WHERE
+            product_detail_code = #{productDetailCode} /* 특정 장비 코드만 */
+          AND loginID = #{loginId}
+          AND product_state = 'Y'   /* 현재 'Y'(사용 중)인 장비만 허용 */
     </update>
 
     <update id="cancelReturn">
