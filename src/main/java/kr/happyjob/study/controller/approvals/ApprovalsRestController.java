@@ -46,6 +46,7 @@ public class ApprovalsRestController {
 
 
     /* 검색 버튼을 눌렀을 때 */
+    //front 쪽에서 검색하는걸로 기능 변경 > 따라서 사용 안하는 method
     @RequestMapping("/approvals/search")
     public ApprovalResponseVO<List<ApprovalsVO>> clickSearchBtn(@RequestBody ApprovalSearchVO aSearchVO){
         logger.info("search 들어옵니까아아아아");
