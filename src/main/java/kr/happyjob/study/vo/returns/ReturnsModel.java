@@ -99,11 +99,11 @@ public class ReturnsModel {
         this.return_date = return_date;
     }
 
-    public String getreturn_reason() {
+    public String getReturn_reason() {
         return return_reason;
     }
 
-    public void setreturn_reason(String order_reason) {
+    public void setReturn_reason(String order_reason) {
         this.return_reason = order_reason;
     }
 
