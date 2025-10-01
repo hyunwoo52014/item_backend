@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpSession;
 import kr.happyjob.study.repository.login.ListUsrChildMnuAtrtMapper;
 import kr.happyjob.study.service.login.*;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,17 @@ import kr.happyjob.study.vo.login.UserVO;
 import kr.happyjob.study.vo.login.LgnInfoModel;
 import kr.happyjob.study.vo.login.UsrMnuAtrtModel;
 import kr.happyjob.study.vo.login.UsrMnuChildAtrtModel;
+
+/* 추가*/
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+
+import org.springframework.beans.factory.annotation.Value;
+
 
 @Controller
 public class LoginController {
@@ -60,6 +72,12 @@ public class LoginController {
     @Autowired
     private MailSendService mailSendService;
 
+    @Value("${google.query.parameter.client.id}")
+    private String GOOGLE_CLIENT_ID;
+
+
+    @Value("${google.query.parameter.client.secret}")
+    private String GOOGLE_CLIENT_SECRET;
 
 
     @GetMapping("/main")
@@ -109,6 +127,45 @@ public class LoginController {
         return resultMap;
     }
 
+    /* 일반/ 소셜용 세션 */
+    private Map<String, Object> setSessionAndBuildResponse(HttpServletRequest request,
+                                                           HttpSession session,
+                                                           LgnInfoModel lgnInfoModel) throws Exception {
+        Map<String, Object> resultMap = new HashMap<>();
+
+        // 메뉴 권한 조회(0 depth)
+        Map<String, Object> menuParam = new HashMap<>();
+        menuParam.put("usr_sst_id", lgnInfoModel.getUsr_sst_id());
+        menuParam.put("userType", lgnInfoModel.getMem_author());
+        List<UsrMnuAtrtModel> listUsrMnuAtrtModel = listUsrMnuAtrtService.listUsrMnuAtrt(menuParam);
+
+        // 메뉴 권한 조회(1 depth)
+        for (UsrMnuAtrtModel list : listUsrMnuAtrtModel) {
+            Map<String, Object> subParam = new HashMap<>();
+            subParam.put("lgn_Id", lgnInfoModel.getLgn_id());
+            subParam.put("hir_mnu_id", list.getMnu_id());
+            subParam.put("userType", lgnInfoModel.getMem_author());
+            list.setNodeList(listUsrChildMnuAtrtService.listUsrChildMnuAtrt(subParam));
+        }
+
+        // 세션 셋팅
+        session.setAttribute("loginId", lgnInfoModel.getLgn_id());
+        session.setAttribute("userNm", lgnInfoModel.getUsr_nm());
+        session.setAttribute("usrMnuAtrt", listUsrMnuAtrtModel);
+        session.setAttribute("userType", lgnInfoModel.getMem_author());
+        session.setAttribute("serverName", request.getServerName());
+
+        // 응답 공통 포맷
+        resultMap.put("result", "SUCCESS");
+        resultMap.put("resultMsg", "로그인 성공");
+        resultMap.put("loginId", lgnInfoModel.getLgn_id());
+        resultMap.put("userNm", lgnInfoModel.getUsr_nm());
+        resultMap.put("usrMnuAtrt", listUsrMnuAtrtModel);
+        resultMap.put("userType", lgnInfoModel.getMem_author());
+        resultMap.put("serverName", request.getServerName());
+        return resultMap;
+    }
+
 
     /*  로그인 */
     @PostMapping(
@@ -137,7 +194,7 @@ public class LoginController {
 
 
             if (lgnInfoModel != null) {
-                result = "SUCCESS";
+/*                result = "SUCCESS";
                 resultMsg = "사용자 로그인 정보가 일치 합니다.";
                 System.out.println("asdf" + lgnInfoModel.getApproval_cd());
                 System.out.println("y".equals(lgnInfoModel.getApproval_cd()));
@@ -167,11 +224,18 @@ public class LoginController {
                 resultMap.put("userNm",lgnInfoModel.getUsr_nm());
                 resultMap.put("usrMnuAtrt", listUsrMnuAtrtModel);
                 resultMap.put("userType", lgnInfoModel.getMem_author());
-                resultMap.put("serverName", request.getServerName());
+                resultMap.put("serverName", request.getServerName());*/
+
+                /* 추가 */
+                return setSessionAndBuildResponse(request, session, lgnInfoModel);
+
             } else {
 
                 result = "FALSE";
                 resultMsg = "사용자 로그인 정보가 일치하지 않습니다.";
+                resultMap.put("resultMsg", resultMsg);
+                resultMap.put("result", result);
+                resultMap.put("serverName", request.getServerName());
             }
 
 
@@ -191,90 +255,205 @@ public class LoginController {
     }
 
 
-   /* // 소셜 로그인  - lgnInfoModel
-	@RequestMapping("/loginProc.do")
-	@ResponseBody
-	public Map<String, Object> loginProc(Model model, @RequestParam Map<String, Object> paramMap, HttpServletRequest request,
-	         HttpServletResponse response, HttpSession session) throws Exception {
+    /* 구글 로그인 */
 
-	      logger.info("+ Start LoginController.loginProc.do");
-		  logger.info("   - ParamMap : " + paramMap);
+    /* 구글 동의 화면 - 엔드포인트*/
+    @GetMapping({"/api/googleLogin","/googleLogin"})
+    public String googleSocialLogin(HttpSession session) {
+        String redirectUri = "http://localhost/login/oauth2/process"; // 콜백 고정(아래와 동일해야 함)
+        String scope = "openid email profile";
+        String googleAuthUrl = "https://accounts.google.com/o/oauth2/v2/auth"
+                + "?client_id=" + GOOGLE_CLIENT_ID
+                + "&redirect_uri=" + redirectUri
+                + "&response_type=code"
+                + "&scope=" + scope
+                + "&access_type=offline"
+                + "&prompt=consent";
 
-          // 사용자 로그인
-		  String result;
-		  String resultMsg;
-		  Map<String, Object> resultMap = new HashMap<String, Object>();
-
-
-		  try {
-			  LgnInfoModel lgnInfoModel = loginProcService.loginProc(paramMap);
-
-
-		       logger.info("   - lgnInfoModel : " + lgnInfoModel);
+        session.setAttribute("socialLogin", "google");
+        return "redirect:" + googleAuthUrl;
+    }
 
 
-		       if (lgnInfoModel != null) {
-		    	   result = "SUCCESS";
-		  	       resultMsg = "사용자 로그인 정보가 일치 합니다.";
-		  	       System.out.println("asdf" + lgnInfoModel.getApproval_cd());
-		  	       System.out.println("y".equals(lgnInfoModel.getApproval_cd()));
-		  	       System.out.println("asdf" + lgnInfoModel.getApproval_cd());
-		  	       System.out.println("n".equals(lgnInfoModel.getApproval_cd()));
-		  	       // 사용자 메뉴 권한 조회
-		  	       paramMap.put("usr_sst_id", lgnInfoModel.getUsr_sst_id());
-		  	       paramMap.put("userType",lgnInfoModel.getMem_author());
-		  	       // 메뉴 목록 조회 0depth
-		  	       List<UsrMnuAtrtModel> listUsrMnuAtrtModel = listUsrMnuAtrtService.listUsrMnuAtrt(paramMap);
-		  	       // 메뉴 목록 조회 1depth
-		  	       for(UsrMnuAtrtModel list : listUsrMnuAtrtModel){
-		  	          Map<String, Object> resultMapSub = new HashMap<String, Object>();
-		  	          resultMapSub.put("lgn_Id", paramMap.get("lgn_Id"));
-		  	          resultMapSub.put("hir_mnu_id", list.getMnu_id());
-		  	          resultMapSub.put("userType",lgnInfoModel.getMem_author());
-		  	          list.setNodeList(listUsrChildMnuAtrtService.listUsrChildMnuAtrt(resultMapSub));
-		  	       }
+    /* 콜백처리 *//* String -> void */
+    @RequestMapping("/login/oauth2/process")
+    public void socialLoginRedirect(@RequestParam Map<String, String> params, HttpServletRequest request, HttpServletResponse response, HttpSession session) throws Exception {
+        logger.info("+ Start /login/oauth2/process");
 
-		  	       session.setAttribute("loginId",lgnInfoModel.getLgn_id());                     //   로그인 ID
-		  	       session.setAttribute("userNm",lgnInfoModel.getUsr_nm());                  // 사용자 성명
-		  	       session.setAttribute("usrMnuAtrt", listUsrMnuAtrtModel);
-		  	       session.setAttribute("userType", lgnInfoModel.getMem_author());            // 로그린 사용자 권란       A: 관리자       B: 기업회원    C:일반회원
-		  	       session.setAttribute("serverName", request.getServerName());
+        String registerId = "";
+        String registerName = "";
+        String registerEmail = "";
+        String accessToken = "";
 
-		  	       resultMap.put("loginId",lgnInfoModel.getLgn_id());
-		  	       resultMap.put("userNm",lgnInfoModel.getUsr_nm());
-		  	       resultMap.put("usrMnuAtrt", listUsrMnuAtrtModel);
-		  	       resultMap.put("userType", lgnInfoModel.getMem_author());
-		  	       resultMap.put("serverName", request.getServerName());
-			} else {
+        if ("google".equals(session.getAttribute("socialLogin"))) {
+            logger.info(">>>>>>>> 구글 로그인 처리");
+            String code = params.get("code");
 
-		         result = "FALSE";
-		         resultMsg = "사용자 로그인 정보가 일치하지 않습니다.";
-		    }
+            if (code == null || code.isEmpty()) {
+                logger.error("Authorization code 없음");
+                //return "redirect:/login";
+                response.sendRedirect("http://localhost:3000/login?error=no_code");
+
+            }
+
+            RestTemplate template = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+            // 토큰 요청
+            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+            body.add("client_id", GOOGLE_CLIENT_ID);
+            body.add("client_secret", GOOGLE_CLIENT_SECRET);
+            body.add("code", code);
+            body.add("redirect_uri", "http://localhost/login/oauth2/process");
+            body.add("grant_type", "authorization_code");
+
+            HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
+
+            ResponseEntity<Map> tokenResponse = template.postForEntity(
+                    "https://oauth2.googleapis.com/token",
+                    entity,
+                    Map.class
+            );
+
+            if (tokenResponse.getStatusCode() == HttpStatus.OK) {
+                Map<String, Object> result = tokenResponse.getBody();
+                accessToken = (String) result.get("access_token");
+
+                logger.info("액세스 토큰 발급 성공");
+
+                // 사용자 정보 요청
+                HttpHeaders userinfoHeaders = new HttpHeaders();
+                userinfoHeaders.set("Authorization", "Bearer " + accessToken);
+                HttpEntity<String> userinfoEntity = new HttpEntity<>(userinfoHeaders);
+
+                ResponseEntity<Map> userinfoResponse = template.exchange(
+                        "https://www.googleapis.com/oauth2/v2/userinfo",
+                        HttpMethod.GET,
+                        userinfoEntity,
+                        Map.class
+                );
+
+                if (userinfoResponse.getStatusCode() == HttpStatus.OK) {
+                    Map<String, Object> userInfo = userinfoResponse.getBody();
+
+                    registerId = (String) userInfo.get("id");
+                    registerName = (String) userInfo.get("name");
+                    registerEmail = (String) userInfo.get("email");
+
+                    logger.info("사용자 정보: ID=" + registerId + ", Name=" + registerName + ", Email=" + registerEmail);
+                } else {
+                    logger.error("사용자 정보 요청 실패");
+                    //return "redirect:/login";
+                    response.sendRedirect("http://localhost:3000/login?error=userinfo_failed");
+                }
+            } else {
+                logger.error("토큰 요청 실패");
+                //return "redirect:/login";
+                response.sendRedirect("http://localhost:3000/login?error=token_failed");
+            }
+        } else {
+            logger.error("잘못된 소셜 로그인");
+            //return "redirect:/login";
+            response.sendRedirect("http://localhost:3000/login?error=invalid_social");
+            return;
+        }
+
+        session.setAttribute("accessToken", accessToken);
+
+        // upsertSocialUser 사용하여 사용자 처리
+        Map<String, Object> upsertParam = new HashMap<>();
+        upsertParam.put("email", registerEmail);
+        upsertParam.put("name", registerName);
+        upsertParam.put("googleSub", registerId);
+
+        LgnInfoModel lgnInfoModel = loginService.upsertSocialUser(upsertParam);
+
+        if (lgnInfoModel == null) {
+            logger.error("사용자 처리 실패");
+            //return "redirect:/login";
+            response.sendRedirect("http://localhost:3000/login?error=user_process_failed");
+            return;
+        }
+
+        if ("N".equals(lgnInfoModel.getStatus_yn())) {
+            logger.warn("비활성화 계정");
+            //return "redirect:/login?error=disabled";
+            response.sendRedirect("http://localhost:3000/login?error=disabled");
+            return;
+        }
+
+        // 메뉴 권한 조회 - 올바른 Service 사용
+        Map<String, Object> menuParam = new HashMap<>();
+        menuParam.put("userType", lgnInfoModel.getUser_type());
+
+        // listUsrMnuAtrtService 사용
+        List<UsrMnuAtrtModel> listUsrMnuAtrtModel = listUsrMnuAtrtService.listUsrMnuAtrt(menuParam);
+
+        // 1depth 메뉴 조회
+        for (UsrMnuAtrtModel list : listUsrMnuAtrtModel) {
+            Map<String, Object> subParam = new HashMap<>();
+            subParam.put("hir_mnu_id", list.getMnu_id());
+            subParam.put("userType", lgnInfoModel.getUser_type());
+
+            // listUsrChildMnuAtrtService 사용
+            list.setNodeList(listUsrChildMnuAtrtService.listUsrChildMnuAtrt(subParam));
+        }
+
+        // 세션 설정
+        session.setAttribute("loginId", lgnInfoModel.getLoginID());
+        session.setAttribute("userNm", lgnInfoModel.getName());
+        session.setAttribute("usrMnuAtrt", listUsrMnuAtrtModel);
+        session.setAttribute("userType", lgnInfoModel.getUser_type());
+        session.setAttribute("serverName", request.getServerName());
+        session.setAttribute("email", registerEmail);
+        session.setAttribute("reg_date", lgnInfoModel.getRegdate());
+        //additional-info
+        session.setAttribute("team",lgnInfoModel.getTeam());
+
+        logger.info("+ End /login/oauth2/process - SUCCESS");
+        //return "redirect:/dashboard";
+        //return "forward:/index.html";
+        /*return "redirect:http://localhost:3000/dashboard?socialLogin=success";*/
+        response.sendRedirect("http://localhost:3000/auth-callback");
+    }
+
+    /* AuthCallBack 에서 세숀 확인 */
+    @GetMapping({"/api/auth/check", "/auth/check"})
+    @ResponseBody
+    public Map<String, Object> checkSession(HttpSession session) {
+        Map<String, Object> result = new HashMap<>();
+        String loginId = (String) session.getAttribute("loginId");
+
+        if(loginId != null){
+            result.put("loginId", loginId);
+            result.put("userNm", session.getAttribute("userNm"));
+            result.put("userType", session.getAttribute("userType"));
+            result.put("usrMnuAtrt", session.getAttribute("usrMnuAtrt"));
+            result.put("serverName", session.getAttribute("serverName"));
+            result.put("email", session.getAttribute("email"));
+
+            Object teamObj = session.getAttribute("team");
+            if(teamObj != null){
+                Map<String, Object> pTeam = new HashMap<>();
+                pTeam.put("loginId", loginId);
+                LgnInfoModel user = loginService.selectFindId(pTeam);
+                if (user != null && user.getTeam() != null && !user.getTeam().isBlank()) {
+                    teamObj = user.getTeam();
+                    session.setAttribute("team", teamObj);
+                }
+            }
+            result.put("team", session.getAttribute("team"));
 
 
 
-		    resultMap.put("result", result);
-		    resultMap.put("resultMsg", resultMsg);
-		    resultMap.put("serverName", request.getServerName());
+        }
 
-		  } catch (Exception e) {
-			    e.printStackTrace();
-		  }
+        return result;
+    }
 
 
-	    logger.info("+ End LoginController.loginProc.do");
-
-	    return resultMap;
-}*/
-
-
-    /**
-     * 로그아웃
-     * @param request
-     * @param response
-     * @param session
-     * @return
-     */
+    /*로그아웃*/
     @RequestMapping(value = "/loginOut.do")
     public ModelAndView loginOut(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
 
@@ -352,6 +531,7 @@ public class LoginController {
         String loginID = (String) paramMap.get("loginID");
         Map<String, Object> resultMap = new HashMap<>();
 
+
         // 기본값 - 성공
         HttpStatus status = HttpStatus.OK;
         String result = "SUCCESS";
@@ -360,11 +540,9 @@ public class LoginController {
         int duplicationVal =  0;
 
         try {
-            // 1. 아이디 중복 확인 (0: 없음, >0: 있음)
             duplicationVal = loginService.checkDuplicatedLoginID(loginID);
 
             if (duplicationVal > 0) {
-                // 2. ID가 이미 존재하는 경우: 세부 정보 확인
                 LgnInfoModel existingUser = loginService.selectFindId(paramMap);
 
                 if (existingUser != null && "N".equals(existingUser.getStatus_yn())) {
@@ -379,17 +557,13 @@ public class LoginController {
                     status = HttpStatus.CONFLICT; // 409 Conflict
                 }
             }
-            // duplicationVal == 0 이면 초기 설정된 SUCCESS 상태를 유지함
 
         } catch(Exception e){
-            // 서버 오류 발생 시 처리
             result = "FAIL";
             resultMsg = "서버 오류 (예외 발생)";
             status = HttpStatus.INTERNAL_SERVER_ERROR; // 500 Internal Server Error
             logger.error("Error in checkDuplicatedloginID", e);
         }
-
-        // 프론트엔드가 기대하는 키로 결과 반환
         resultMap.put("result", result);
         resultMap.put("resultMsg", resultMsg);
 
@@ -527,8 +701,6 @@ public class LoginController {
         return new ResponseEntity<>(resultMap, HttpStatus.OK);
     }
 
-    // 7-3. 이메일 인증 취소 (필요한지 좀 더 고민, 세션 관리 부분에서 취소해야 하는지 여부)
-
     // 8. 비밀번호 찾기
     @RequestMapping({"/sendMailForFindPW", "/api/sendMailForFindPW"})
     public ResponseEntity<?> emailSendForPwAuth(Model model, @RequestParam Map<String, Object> paramMap,
@@ -545,7 +717,6 @@ public class LoginController {
             return new ResponseEntity<>("FAIL", HttpStatus.NOT_FOUND);
         }
 
-        // 소셜 로그인은 주소를 안 가져오므로 이를 더미 컬럼으로 사용
         LgnInfoModel lgnModel = loginService.selectFindId(paramMap);
         if("SOCIALLOGIN".equalsIgnoreCase(lgnModel.getAddr())){
             resultMap.put("result", "소셜로그인 계정");
@@ -616,6 +787,71 @@ public class LoginController {
         session.removeAttribute("find_temp_email");
         logger.info(" + End " + className + ".mailAuthComparisonForPW");
         return new ResponseEntity<>(paramMap, HttpStatus.OK);
+    }
+
+    // 소셜 아이디 update
+    @PostMapping(
+            value = {"/api/login/additional/update/data"},
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+
+    )
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateAdditionalInfo(
+            @RequestParam Map<String, Object> paramMap,
+            HttpSession session,
+            HttpServletRequest request
+    ) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+
+            String loginID = (String) paramMap.get("loginID");
+            String team = (String) paramMap.get("team");
+            if (loginID == null || loginID.isBlank()) {
+                Object sid = session.getAttribute("loginId");
+                if (sid != null) loginID = sid.toString();
+            }
+
+            // 2) 검증
+            if (loginID == null || loginID.isBlank()) {
+                result.put("result", "FAIL");
+                result.put("resultMsg", "loginID가 없습니다.");
+                return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+            }
+            if (team == null || team.isBlank()) {
+                result.put("result", "FAIL");
+                result.put("resultMsg", "team이 없습니다.");
+                return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+            }
+
+            // 3) 업데이트
+            Map<String, Object> upd = new HashMap<>();
+            upd.put("loginID", loginID);
+            upd.put("team", team);
+            int updated = loginService.updateUser(upd);
+
+            // 4) 세션도 갱신(원하면)
+             session.setAttribute("team", team);
+
+            if (updated > 0) {
+                result.put("result", "SUCCESS");
+                result.put("resultMsg", "추가정보 저장 완료");
+                result.put("loginId", loginID);
+                result.put("team", team);
+                result.put("serverName", request.getServerName());
+                return new ResponseEntity<>(result, HttpStatus.OK);
+            } else {
+                result.put("result", "FAIL");
+                result.put("resultMsg", "변경된 내용이 없습니다.");
+                return new ResponseEntity<>(result, HttpStatus.OK);
+            }
+
+        } catch (Exception e) {
+            logger.error("updateAdditionalInfo error", e);
+            result.put("result", "FAIL");
+            result.put("resultMsg", "서버 오류");
+            return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 

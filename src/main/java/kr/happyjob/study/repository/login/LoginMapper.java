@@ -20,6 +20,10 @@ public interface LoginMapper {
     int registerUser(Map<String, Object> param);
     //소셜로그인
     int registerSocialLogin(Map<String, Object> param);
+
+    // 소셜 로그인 - 기존 등록된 이메일 찾음 -> 아이디로 로그인
+    LgnInfoModel selectByEmail(String email);
+
     //아디이 중복 확인
     int checkDuplicatedLoginID(String loginID);
     // 이메일 중복 확인
@@ -32,6 +36,8 @@ public interface LoginMapper {
     void passwordChangeUpdate(Map<String, Object> param);
     //추가정보 업데이트
     int updateUser(Map<String, Object> param);
+
+
 
 
 }

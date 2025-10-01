@@ -1,7 +1,9 @@
 package kr.happyjob.study.service.login;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -94,4 +96,35 @@ public class LoginService {
     public String randomCode() throws Exception {
         return mailSendService.RandomNum();
     }
+
+    /* 소셜로그인용*/
+    public LgnInfoModel upsertSocialUser(Map<String, Object> p) {
+        String email = (String) p.get("email");
+
+       //이메일 찾기
+        LgnInfoModel existing  = mapper.selectByEmail(email);
+
+        // 있으면 기존 정보
+        if(existing  != null) {
+            return existing ;
+        }
+
+        // 신규
+        String googleSub = (String) p.get("googleSub");
+        String loginID = (googleSub != null && !googleSub.isBlank())
+                ? "g_" + googleSub
+                : email.split("@")[0];
+
+        Map<String, Object> ins = new HashMap<>(p);
+        ins.put("loginID", loginID);
+        ins.putIfAbsent("user_type", "B");
+        ins.putIfAbsent("status_yn", "Y");
+        ins.putIfAbsent("regdate", LocalDate.now().toString());
+        ins.putIfAbsent("addr", "SOCIALLOGIN");
+        ins.putIfAbsent("addr_detail", "GOOGLE");
+
+        mapper.registerUser(ins);
+        return mapper.selectByEmail(email);
+    }
+
 }

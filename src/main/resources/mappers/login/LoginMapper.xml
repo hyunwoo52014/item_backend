@@ -68,6 +68,13 @@
         WHERE email = #{_parameter}
     </select>
 
+    <!--6) 이메일로 정보 찾기-->
+    <select id="selectByEmail" parameterType="string" resultType="kr.happyjob.study.vo.login.LgnInfoModel">
+        SELECT loginID, user_type, name, password
+        FROM tb_userinfo
+        WHERE email = #{email}
+    </select>
+
     <!-- 7) 이름+이메일 존재여부 -->
     <select id="searchUserExist" parameterType="map" resultType="int">
         SELECT COUNT(*) FROM tb_userinfo
