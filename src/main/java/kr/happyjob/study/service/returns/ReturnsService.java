@@ -44,4 +44,9 @@ public class ReturnsService {
         return returnsMapper.cancelReturn(paramMap);
     }
 
+    // 모달 상세 조회
+    public ReturnsModel selectProductStateDetail(Map<String, Object> paramMap) throws Exception {
+        return returnsMapper.selectProductStateDetail(paramMap);
+    }
+
 }

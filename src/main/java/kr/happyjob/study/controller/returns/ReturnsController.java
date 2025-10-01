@@ -201,5 +201,13 @@ public class ReturnsController {
         return returnMap;
     }
 
+    // 모달 상세 조회
+    @ResponseBody
+    @RequestMapping("stateDetail")
+    public ReturnsModel productStateDetail(@RequestParam Map<String, Object> paramMap) throws Exception {
+        return returnsService.selectProductStateDetail(paramMap);
+    }
+
+
 
 }

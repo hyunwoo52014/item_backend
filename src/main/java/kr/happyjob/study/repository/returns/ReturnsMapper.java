@@ -34,4 +34,9 @@ public interface ReturnsMapper {
      */
     public int cancelReturn(Map<String, Object> paramMap) throws Exception;
 
+
+    /**
+     * 모달 상세 조회
+     */
+    public ReturnsModel selectProductStateDetail(Map<String, Object> paramMap) throws Exception;
 }
