@@ -23,7 +23,8 @@
         status_yn    AS status_yn,
         regdate      AS regdate,
         addr         AS addr,
-        addr_detail  AS addr_detail
+        addr_detail  AS addr_detail,
+        team         AS team
         FROM tb_userinfo
         <where>
             <if test="loginID != null and loginID != ''">AND loginID = #{loginID}</if>
@@ -84,7 +85,7 @@
         </where>
     </select>
 
-    <!-- 8) 비밀번호 변경 -->
+    <!-- 8) 비밀번호 변경  - 안함 -->
     <update id="passwordChangeUpdate" parameterType="map">
         UPDATE tb_userinfo
         SET password = #{change_password}

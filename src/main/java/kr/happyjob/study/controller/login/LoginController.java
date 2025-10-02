@@ -154,6 +154,7 @@ public class LoginController {
         session.setAttribute("usrMnuAtrt", listUsrMnuAtrtModel);
         session.setAttribute("userType", lgnInfoModel.getMem_author());
         session.setAttribute("serverName", request.getServerName());
+        session.setAttribute("team", lgnInfoModel.getTeam());
 
         // 응답 공통 포맷
         resultMap.put("result", "SUCCESS");
@@ -163,6 +164,7 @@ public class LoginController {
         resultMap.put("usrMnuAtrt", listUsrMnuAtrtModel);
         resultMap.put("userType", lgnInfoModel.getMem_author());
         resultMap.put("serverName", request.getServerName());
+        resultMap.put("team", lgnInfoModel.getTeam());
         return resultMap;
     }
 
@@ -434,9 +436,10 @@ public class LoginController {
             result.put("email", session.getAttribute("email"));
 
             Object teamObj = session.getAttribute("team");
-            if(teamObj != null){
+
+            if(teamObj == null){
                 Map<String, Object> pTeam = new HashMap<>();
-                pTeam.put("loginId", loginId);
+                pTeam.put("loginID", loginId);
                 LgnInfoModel user = loginService.selectFindId(pTeam);
                 if (user != null && user.getTeam() != null && !user.getTeam().isBlank()) {
                     teamObj = user.getTeam();
