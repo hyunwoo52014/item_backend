@@ -1,18 +1,116 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="kr.happyjob.study.repository.login.LoginMapper">
-	<select id="login"
-			parameterType="kr.happyjob.study.vo.login.LoginVO"
-			resultType="kr.happyjob.study.vo.login.UserVO">
-		select
-			loginID
-			,user_type
-			,name
-			,password
-		from
-			tb_userinfo
-		where
-			loginID = #{id}
-			and password = #{pw}
-	</select>
+
+    <!-- 1) 로그인 -->
+    <select id="login" parameterType="kr.happyjob.study.vo.login.LoginVO"
+            resultType="kr.happyjob.study.vo.login.UserVO">
+        SELECT loginID, user_type, name, password
+        FROM tb_userinfo
+        WHERE loginID = #{id}
+          AND password = #{pw}
+    </select>
+
+    <!-- 2) 사용자 정보 조회 -->
+    <select id="selectFindId" parameterType="map"
+            resultType="kr.happyjob.study.vo.login.LgnInfoModel">
+        SELECT
+        loginID      AS lgn_id,
+        name         AS usr_nm,
+        user_type    AS mem_author,
+        status_yn    AS status_yn,
+        regdate      AS regdate,
+        addr         AS addr,
+        addr_detail  AS addr_detail,
+        team         AS team
+        FROM tb_userinfo
+        <where>
+            <if test="loginID != null and loginID != ''">AND loginID = #{loginID}</if>
+            <if test="password != null and password != ''">AND password = #{password}</if>
+            <if test="name != null and name != ''">AND name = #{name}</if>
+            <if test="email != null and email != ''">AND email = #{email}</if>
+        </where>
+    </select>
+
+    <!-- 3) 회원가입  -->
+    <insert id="registerUser" parameterType="map">
+        INSERT INTO tb_userinfo (
+            loginID, name, password, user_type, status_yn, regdate,
+            email, addr, addr_detail, hp, birthday, team
+        )
+        VALUES (
+                   #{loginID}, #{name}, #{password}, #{user_type}, #{status_yn},
+                   #{regdate},
+                   #{email}, #{addr}, #{addr_detail},
+                   #{hp}, #{birthday}, #{team}
+               )
+    </insert>
+
+    <!-- 4) 소셜 회원가입 -->
+    <insert id="registerSocialLogin" parameterType="map">
+        INSERT INTO tb_userinfo (
+            loginID, user_type, name, email, regdate, team, addr, addr_detail, status_yn
+        ) VALUES (
+                     #{loginID}, #{user_type}, #{name}, #{email}, #{regdate}, #{team}, #{addr}, #{addr_detail}, #{status_yn}
+                 )
+    </insert>
+
+    <!-- 5) 아이디 중복 확인 -->
+    <select id="checkDuplicatedLoginID" parameterType="string" resultType="int">
+        SELECT COUNT(*) FROM tb_userinfo
+        WHERE loginID = #{_parameter}
+    </select>
+
+    <!-- 6) 이메일 중복 확인 -->
+    <select id="checkDuplicatedEmail" parameterType="string" resultType="int">
+        SELECT COUNT(*) FROM tb_userinfo
+        WHERE email = #{_parameter}
+    </select>
+
+    <!--6) 이메일로 정보 찾기-->
+    <select id="selectByEmail" parameterType="string" resultType="kr.happyjob.study.vo.login.LgnInfoModel">
+        SELECT loginID, user_type, name, password
+        FROM tb_userinfo
+        WHERE email = #{email}
+    </select>
+
+    <!-- 7) 이름+이메일 존재여부 -->
+    <select id="searchUserExist" parameterType="map" resultType="int">
+        SELECT COUNT(*) FROM tb_userinfo
+        <where>
+            <if test="name != null and name != ''">AND name = #{name}</if>
+            <if test="email != null and email != ''">AND email = #{email}</if>
+        </where>
+    </select>
+
+    <!-- 8) 비밀번호 변경  - 안함 -->
+    <update id="passwordChangeUpdate" parameterType="map">
+        UPDATE tb_userinfo
+        SET password = #{change_password}
+        <where>
+            <if test="loginID != null and loginID != ''">AND loginID = #{loginID}</if>
+            <if test="email != null and email != ''">AND email = #{email}</if>
+        </where>
+    </update>
+
+    <!-- 9) 추가 유저 정보 갱신 -->
+    <update id="updateUser" parameterType="map">
+        UPDATE tb_userinfo
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="hp != null">hp = #{hp},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="regdate != null">regdate = #{regdate},</if>
+            <if test="addr != null">addr = #{addr},</if>
+            <if test="addr_detail != null">addr_detail = #{addr_detail},</if>
+            <if test="birthday != null">birthday = #{birthday},</if>
+            <if test="team != null">team = #{team},</if>
+            <if test="status_yn != null">status_yn = #{status_yn},</if>
+        </set>
+        WHERE loginID = #{loginID}
+    </update>
+
 </mapper>
