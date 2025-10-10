@@ -2,58 +2,68 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="kr.happyjob.study.repository.requests.HistoryMapper">
 
+    <!-- SELECT 문 -->
+    <!-- front에서 사용할 읽기 전용 리스트 DB에서 추출 및 가공 -->
     <select id="subCategory" resultType="java.lang.String" parameterType="java.util.Map">
-        /*kr.happyjob.study.vo.requests.subCategory*/
+        /* subCategory */
         SELECT DISTINCT
         <choose>
             <when test="'itProduct'.equals(flag) ">
-                    IFNULL(category_name,'없음') as SubCategory
+                IFNULL(category_name,'없음') as SubCategory
                 FROM tb_product_detail as pd
                 INNER JOIN
-                    tb_category_code as cc
+                tb_category_code as cc
                 ON pd.category_code = cc.category_code
             </when>
             <when test="'team'.equals(flag)">
-                    IFNULL(team,'미소속') as SubCategory
+                IFNULL(team,'미소속') as SubCategory
                 FROM tb_userinfo
             </when>
             <when test="'name'.equals(flag)">
-                    IFNULL(name,'미기재') as SubCategory
+                IFNULL(name,'미기재') as SubCategory
                 FROM tb_userinfo
             </when>
             <when test="'status'.equals(flag)">
-                    IFNULL(product_state,'미판별') as SubCategory
+                IFNULL(product_state,'미판별') as SubCategory
                 FROM tb_product_detail
             </when>
             <otherwise>
-                    IFNULL(category_name,'없음') as SubCategory
-                    FROM tb_category_code
+                IFNULL(category_name,'없음') as SubCategory
+                FROM tb_category_code
                 UNION
-                    SELECT DISTINCT IFNULL(team,'미소속') as SubCategory
-                    FROM tb_userinfo
+                SELECT DISTINCT IFNULL(team,'미소속') as SubCategory
+                FROM tb_userinfo
                 UNION
-                    SELECT DISTINCT IFNULL(name,'미기재') as SubCategory
-                    FROM tb_userinfo
+                SELECT DISTINCT IFNULL(name,'미기재') as SubCategory
+                FROM tb_userinfo
                 UNION
-                    SELECT DISTINCT IFNULL(product_state,'미판별') as SubCategory
-                    FROM tb_product_detail
+                SELECT DISTINCT IFNULL(product_state,'미판별') as SubCategory
+                FROM tb_product_detail
             </otherwise>
         </choose>
         ORDER BY SubCategory DESC
     </select>
 
+    <select id="statusCodeList" resultType="java.lang.String">
+        /* statusCodeList */
+        SELECT DISTINCT product_state
+        from tb_product_detail
+    </select>
+
+    <!-- 정보 가져오기 -->
+
     <select id="historyList" resultType="kr.happyjob.study.vo.requests.HistoryModel">
-        /* kr.happyjob.study.vo.requests.historyList2 */
+        /* kr.happyjob.study.vo.requests.HistoryModel */
         SELECT
-        U.team AS team,
-        U.name AS name,
-        P.product_name AS productName,
-        PD.rental_date AS rentalDate,
-        PD.return_date AS returnDate,
-        PD.product_detail_code AS productDetailCode,
-        PD.product_no AS productNo,
-        PD.product_state AS status,
-        CC.category_name
+            U.team AS team,
+            U.name AS name,
+            P.product_name AS productName,
+            PD.rental_date AS rentalDate,
+            PD.return_date AS returnDate,
+            PD.product_detail_code AS productDetailCode,
+            PD.product_no AS productNo,
+            PD.product_state AS status,
+            CC.category_name
         FROM tb_product_detail PD
         INNER JOIN tb_product_info P ON PD.product_no = P.product_no
         INNER JOIN tb_userinfo U ON PD.loginID = U.loginID
@@ -61,62 +71,98 @@
         <where>
             /* 괄호를 통해 해당 평가가 먼저 되게 함, () -> NOT-> AND -> OR 순으로 평가됨*/
             (PD.rental_date IS NOT NULL OR PD.return_date IS NOT NULL)
-            <if test="loginID != null and !loginID.equals('')">
+            <if test="loginID!=null and !loginID.equals('')">
                 /* 컨트롤러에서 이 값을 넣으면 일반유저, 없으면 관리자*/
                 AND PD.loginID = #{loginID}
             </if>
-            /*searchMajorSel, searchSubSel, searchTitle*/
-            <choose>
-                <when test="searchMajorSel != null and !searchMajorSel.equals('')">
-                    <if test="searchMajorSel != null and searchMajorSel.equals('team')">
-                        <if test="searchSubSel != '미소속'">
-                            AND U.team LIKE CONCAT('%',#{searchSubSel},'%')
-                        </if>
-                        <if test="searchSubSel == '미소속'">
-                            AND U.team IS NULL
-                        </if>
-                    </if>
-                    <if test="searchMajorSel != null and searchMajorSel.equals('name')">
-                        <if test="searchSubSel != '미기재'">
-                            AND U.name LIKE CONCAT('%',#{searchSubSel},'%')
-                        </if>
-                        <if test="searchSubSel == '미기재'">
-                            AND U.name IS NULL
-                        </if>
-                    </if>
-                    <if test="searchMajorSel != null and searchMajorSel.equals('itProduct')">
-                        <if test="searchSubSel != '없음'">
-                            AND CC.category_name LIKE CONCAT('%',#{searchSubSel},'%')
-                        </if>
-                        <if test="searchSubSel == '없음'">
-                            AND CC.category_name IS NULL
-                        </if>
-                    </if>
-                    <if test="searchMajorSel != null and searchMajorSel.equals('status')">
-                        <if test="searchSubSel != '미판별'">
-                            <if test="searchSubSel_N != null and searchSubSel_R != null">
-                                AND ( PD.product_state LIKE CONCAT('%',#{searchSubSel_N},'%') OR PD.product_state LIKE CONCAT('%',#{searchSubSel_R},'%') )
+            /* 관리자 */
+            <if test='userType!=null and "A".equals(userType)'>
+                <choose>
+                    <when test="searchMajorSel != null and !searchMajorSel.equals('')">
+                        /* TEAM */
+                        <if test="searchMajorSel != null and searchMajorSel.equals('team')">
+                            <if test="searchSubSel != '미소속'">
+                                AND U.team LIKE CONCAT('%',#{searchSubSel},'%')
                             </if>
-                            <if test="searchSubSel_N == null or searchSubSel_R == null">
-                                AND PD.product_state LIKE CONCAT('%',#{searchSubSel},'%')
+                            <if test="searchSubSel == '미소속'">
+                                AND U.team IS NULL
                             </if>
                         </if>
-                        <if test="searchSubSel == '미판별'">
-                            AND PD.product_state IS NULL
+                        /* NAME */
+                        <if test="searchMajorSel != null and searchMajorSel.equals('name')">
+                            <if test="searchSubSel != '미기재'">
+                                AND U.name LIKE CONCAT('%',#{searchSubSel},'%')
+                            </if>
+                            <if test="searchSubSel == '미기재'">
+                                AND U.name IS NULL
+                            </if>
                         </if>
-                    </if>
-                </when>
-                <otherwise>
-                    AND PD.product_state IN ('Y', 'N', 'R')
-                </otherwise>
-            </choose>
+                        /*ITProduct*/
+                        <if test="searchMajorSel != null and searchMajorSel.equals('itProduct')">
+                            <if test="searchSubSel != '없음'">
+                                AND CC.category_name LIKE CONCAT('%',#{searchSubSel},'%')
+                                AND P.product_name LIKE CONCAT ('%',#{searchTitle},'%')
+                            </if>
+                            <if test="searchSubSel == '없음'">
+                                AND CC.category_name IS NULL
+                            </if>
+                        </if>
+                        /*Status*/
+                        <if test='searchMajorSel != null and searchMajorSel.equals("status")'>
+                            <if test="searchSubSel != '미판별'">
+                                <if test='searchSubSel_N != null and searchSubSel_R != null'>
+                                    AND ( PD.product_state LIKE CONCAT('%',#{searchSubSel_N},'%') OR PD.product_state
+                                    LIKE CONCAT('%',#{searchSubSel_R},'%') )
+                                </if>
+                                <if test='searchSubSel_N == null or searchSubSel_R == null'>
+                                    AND PD.product_state LIKE CONCAT('%',#{searchSubSel},'%')
+                                </if>
+                            </if>
+                            <if test="searchSubSel == '미판별'">
+                                AND PD.product_state IS NULL
+                            </if>
+                        </if>
+                    </when>
+                    <otherwise>
+                        /*ALL*/
+                        AND PD.product_state IN ('Y', 'N', 'R')
+                    </otherwise>
+                </choose>
+            </if>
+            /* 일반 유저 */
+            <if test='userType!=null and "B".equals(userType)'>
+                <choose>
+                    <when test="searchMajorSel != null and searchMajorSel == 'itProduct' ">
+                        AND P.product_name LIKE CONCAT('%',#{searchTitle},'%')
+                    </when>
+                    <when test="searchMajorSel != null and searchMajorSel == 'rentalDate' ">
+                        AND DATE(PD.rental_date) = #{searchSubSel}
+                    </when>
+                    <when test="searchMajorSel != null and searchMajorSel == 'returnDate' ">
+                        AND DATE(PD.return_date) = #{searchSubSel}
+                    </when>
+                    <when test="searchMajorSel != null and searchMajorSel == 'status' ">
+                        <if test='searchSubSel != null and "Y".equals(searchSubSel)'>
+                            AND PD.product_state = #{searchSubSel}
+                        </if>
+                        <if test='searchSubSel != null and "N".equals(searchSubSel)'>
+                            AND (PD.product_state = #{searchSubSel_N}
+                            OR PD.product_state = #{searchSubSel_R})
+                        </if>
+                    </when>
+                    <otherwise>
+                        AND PD.product_state IN ('Y', 'N', 'R')
+                    </otherwise>
+                </choose>
+            </if>
         </where>
         ORDER BY PD.rental_date DESC
         LIMIT #{pageIndex}, #{pageSize}
+
     </select>
 
     <select id="historyCnt" resultType="int">
-        /* kr.happyjob.study.vo.requests.historyCnt */
+        /* Int */
         SELECT
             COUNT(*)
         FROM tb_product_detail PD
@@ -130,57 +176,86 @@
                 /* 컨트롤러에서 이 값을 넣으면 일반유저, 없으면 관리자*/
                 AND PD.loginID = #{loginID}
             </if>
-            /*searchMajorSel, searchSubSel, searchTitle*/
-            <choose>
-                <when test="searchMajorSel != null and !searchMajorSel.equals('')">
-                    <if test="searchMajorSel != null and searchMajorSel.equals('team')">
-                        /* 소속팀 쿼리*/
-                        <if test="searchSubSel != '미소속'">
-                            AND U.team LIKE CONCAT('%',#{searchSubSel},'%')
-                        </if>
-                        <if test="searchSubSel == '미소속'">
-                            AND U.team IS NULL
-                        </if>
-                    </if>
-                    <if test="searchMajorSel != null and searchMajorSel.equals('name')">
-                        /* 대여자 쿼리*/
-                        <if test="searchSubSel != '미기재'">
-                            AND U.name LIKE CONCAT('%',#{searchSubSel},'%')
-                        </if>
-                        <if test="searchSubSel == '미기재'">
-                            AND U.name IS NULL
-                        </if>
-                    </if>
-                    <if test="searchMajorSel != null and searchMajorSel.equals('itProduct')">
-                        /* IT 장비 이름 쿼리*/
-                        <if test="searchSubSel != '없음'">
-                            AND CC.category_name LIKE CONCAT('%',#{searchSubSel},'%')
-                        </if>
-                        <if test="searchSubSel == '없음'">
-                            AND CC.category_name IS NULL
-                        </if>
-                    </if>
-                    <if test="searchMajorSel != null and searchMajorSel.equals('status')">
-                        /* 장비 상태 쿼리*/
-                        <if test="searchSubSel != '미판별'">
-                            <if test="searchSubSel_N != null and searchSubSel_R != null">
-                                AND ( PD.product_state LIKE CONCAT('%',#{searchSubSel_N},'%') OR PD.product_state LIKE CONCAT('%',#{searchSubSel_R},'%') )
+            /* 관리자 */
+            <if test='userType != null and "A".equals(userType)'>
+                <choose>
+                    <when test="searchMajorSel != null and !searchMajorSel.equals('')">
+                        <if test="searchMajorSel != null and searchMajorSel.equals('team')">
+                            <if test="searchSubSel != '미소속'">
+                                AND U.team LIKE CONCAT('%',#{searchSubSel},'%')
                             </if>
-                            <if test="searchSubSel_N == null or searchSubSel_R == null">
-                                AND PD.product_state LIKE CONCAT('%',#{searchSubSel},'%')
+                            <if test="searchSubSel == '미소속'">
+                                AND U.team IS NULL
                             </if>
                         </if>
-                    </if>
-                </when>
-                <otherwise>
-                    AND PD.product_state IN ('Y', 'N', 'R')
-                </otherwise>
-            </choose>
+                        <if test="searchMajorSel != null and searchMajorSel.equals('name')">
+                            <if test="searchSubSel != '미기재'">
+                                AND U.name LIKE CONCAT('%',#{searchSubSel},'%')
+                            </if>
+                            <if test="searchSubSel == '미기재'">
+                                AND U.name IS NULL
+                            </if>
+                        </if>
+                        <if test="searchMajorSel != null and searchMajorSel.equals('itProduct')">
+                            <if test="searchSubSel != '없음'">
+                                AND CC.category_name LIKE CONCAT('%',#{searchSubSel},'%')
+                                AND P.product_name LIKE CONCAT ('%',#{searchTitle},'%')
+                            </if>
+                            <if test="searchSubSel == '없음'">
+                                AND CC.category_name IS NULL
+                            </if>
+                        </if>
+                        <if test="searchMajorSel != null and searchMajorSel.equals('status')">
+                            <if test="searchSubSel != '미판별'">
+                                <if test="searchSubSel_N != null and searchSubSel_R != null">
+                                    AND ( PD.product_state LIKE CONCAT('%',#{searchSubSel_N},'%') OR PD.product_state
+                                    LIKE CONCAT('%',#{searchSubSel_R},'%') )
+                                </if>
+                                <if test="searchSubSel_N == null or searchSubSel_R == null">
+                                    AND PD.product_state LIKE CONCAT('%',#{searchSubSel},'%')
+                                </if>
+                            </if>
+                            <if test="searchSubSel == '미판별'">
+                                AND PD.product_state IS NULL
+                            </if>
+                        </if>
+                    </when>
+                    <otherwise>
+                        AND PD.product_state IN ('Y', 'N', 'R')
+                    </otherwise>
+                </choose>
+            </if>
+            /* 일반 유저 */
+            <if test='userType != null and "B".equals(userType)'>
+                <choose>
+                    <when test="searchMajorSel != null and searchMajorSel == 'itProduct' ">
+                        AND P.product_name LIKE CONCAT('%',#{searchTitle},'%')
+                    </when>
+                    <when test="searchMajorSel != null and searchMajorSel == 'rentalDate' ">
+                        AND DATE(PD.rental_date) = #{searchSubSel}
+                    </when>
+                    <when test="searchMajorSel != null and searchMajorSel == 'returnDate' ">
+                        AND DATE(PD.return_date) = #{searchSubSel}
+                    </when>
+                    <when test="searchMajorSel != null and searchMajorSel == 'status' ">
+                        <if test='searchSubSel != null and "Y".equals(searchSubSel)'>
+                            AND PD.product_state = #{searchSubSel}
+                        </if>
+                        <if test='searchSubSel != null and "N".equals(searchSubSel)'>
+                            AND (PD.product_state = #{searchSubSel_N}
+                            OR PD.product_state = #{searchSubSel_R})
+                        </if>
+                    </when>
+                    <otherwise>
+                        AND PD.product_state IN ('Y', 'N', 'R')
+                    </otherwise>
+                </choose>
+            </if>
         </where>
     </select>
 
     <select id="detailHistory" parameterType="java.util.Map" resultType="kr.happyjob.study.vo.requests.HistoryModel">
-        /* kr.happyjob.study.vo.requests.detailHistory */
+        /* kr.happyjob.study.vo.requests.HistoryModel */
         SELECT U.team                 AS team,
                U.name                 AS name,
                P.product_name         AS productName,
@@ -197,8 +272,13 @@
           AND PD.product_detail_code = #{productDetailCode}
     </select>
 
+    <!-- INSERT 문 -->
+
+    <!-- UPDATE 문 -->
+
+    <!-- DELETE 문 -->
     <delete id="deleteHistory" parameterType="java.util.Map">
-        /* kr.happyjob.study.vo.requests.deleteHistory*/
+        /* deleteHistory*/
         DELETE
         FROM tb_product_detail
         WHERE product_no = #{productNo}

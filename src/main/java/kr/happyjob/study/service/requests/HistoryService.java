@@ -38,6 +38,10 @@ public class HistoryService {
         return historymapper.historyCnt(paramMap);
     }
 
+    public List<String> statusCodeList(){
+        return historymapper.statusCodeList();
+    }
+
     public HistoryModel detailHistory(@RequestParam Map<String, Object> paramMap) {
         return historymapper.detailHistory(paramMap);
     }

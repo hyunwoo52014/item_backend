@@ -17,6 +17,8 @@ public interface HistoryMapper {
 
     public List<HistoryModel> historyList(@RequestParam Map<String, Object> paramMap);
 
+    public List<String> statusCodeList();
+
     int historyCnt(@RequestParam Map<String, Object> paramMap);
 
     HistoryModel detailHistory(@RequestParam Map<String, Object> paramMap);

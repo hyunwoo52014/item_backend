@@ -15,17 +15,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Controller
 @RequestMapping("/requests/")
-public class RequestsController {
+public class HistoryController {
 
     private final Logger logger = LogManager.getLogger(this.getClass());
     private final String className = this.getClass().toString();
     private final HistoryService historyService;
 
-    public RequestsController(@Autowired HistoryService historyService) {
+    public HistoryController(@Autowired HistoryService historyService) {
         this.historyService = historyService;
     }
 
@@ -56,20 +57,17 @@ public class RequestsController {
         return tempList;
     }
 
-    @RequestMapping("historyList")
+    @RequestMapping("adminHistoryList")
     @ResponseBody
-    public Map<String, Object> historyList(@RequestParam Map<String, Object> paramMap, HttpServletRequest request,
+    public Map<String, Object> adminHistoryList(@RequestParam Map<String, Object> paramMap, HttpServletRequest request,
                                        HttpServletResponse response, HttpSession session) {
-        logger.info("+ Start " + className + ".historyList");
+        logger.info("+ Start " + className + ".adminHistoryList");
         Map<String, Object> resultMap = new HashMap<>();
 
-        logger.info(" data check : ");
-        String loginId = String.valueOf(session.getAttribute("loginId"));
         String userType = String.valueOf(session.getAttribute("userType"));
-
-        if(!"A".equals(userType)){
-            paramMap.put("loginID", loginId);
-        }
+        = session.getAttributeNames();
+        logger.info("+ >>>>>> userType : " + userType);
+        paramMap.put("userType", userType);
 
         int currentPage = Integer.parseInt((String) paramMap.get("currentPage"));
         int pageSize = Integer.parseInt((String) paramMap.get("pageSize"));
@@ -77,11 +75,6 @@ public class RequestsController {
 
         paramMap.put("pageIndex", pageIndex);
         paramMap.put("pageSize", pageSize);
-
-        logger.info(" data check");
-        for(Map.Entry<String, Object> entry : paramMap.entrySet()){
-            logger.info("key : " + entry.getKey() + " value : " + entry.getValue());
-        }
 
         if("승인".equalsIgnoreCase((String)paramMap.get("searchSubSel"))) {
             paramMap.put("searchSubSel", "Y");
@@ -93,7 +86,13 @@ public class RequestsController {
         }
 
         if("오류".equalsIgnoreCase((String)paramMap.get("searchSubSel"))){
-            paramMap.put("searchSubSel", null);
+            paramMap.put("searchSubSel", "미판별");
+        }
+
+
+        logger.info(" data check");
+        for(Map.Entry<String, Object> entry : paramMap.entrySet()){
+            logger.info("key : " + entry.getKey() + " value : " + entry.getValue() + " value type : " + entry.getValue().getClass());
         }
 
         List<HistoryModel> modelList = historyService.historyList(paramMap);
@@ -104,7 +103,65 @@ public class RequestsController {
         resultMap.put("currentPage", currentPage);
         resultMap.put("pageSize", pageSize);
 
-        logger.info("+ end " + className + ".historyList");
+        logger.info("+ end " + className + ".adminHistoryList");
+        return resultMap;
+    }
+
+    @RequestMapping("userHistoryList")
+    @ResponseBody
+    public Map<String, Object> userHistoryList(@RequestParam Map<String, Object> paramMap, HttpServletRequest request,
+                                           HttpServletResponse response, HttpSession session) {
+        logger.info("+ Start " + className + ".userHistoryList");
+        Map<String, Object> resultMap = new HashMap<>();
+
+        String loginId = String.valueOf(session.getAttribute("loginId"));
+        String userType = String.valueOf(session.getAttribute("userType"));
+
+        paramMap.put("loginID", loginId);
+        paramMap.put("userType", userType);
+
+        int currentPage = Integer.parseInt((String) paramMap.get("currentPage"));
+        int pageSize = Integer.parseInt((String) paramMap.get("pageSize"));
+        int pageIndex = (currentPage - 1) * pageSize;
+
+        paramMap.put("pageIndex", pageIndex);
+        paramMap.put("pageSize", pageSize);
+
+       switch(((String)paramMap.get("searchMajorSel")).toUpperCase()){
+           case "RENTALDATE" :
+               logger.info((String)paramMap.get("searchSubSel"));
+               Date rentalDate = new Date(Long.parseLong((String)paramMap.get("searchSubSel")));
+               SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd");
+               paramMap.put("searchSubSel", sdf1.format(rentalDate));
+               break;
+           case "RETURNDATE" :
+               logger.info((String)paramMap.get("searchSubSel"));
+               Date returnDate = new Date(Long.parseLong((String)paramMap.get("searchSubSel")));
+               SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd");
+               paramMap.put("searchSubSel", sdf2.format(returnDate));
+               break;
+           case "STATUS" :
+               paramMap.put("searchSubSel_N", "N");
+               paramMap.put("searchSubSel_R", "R");
+               break;
+           default :
+               break;
+       }
+
+        for(Map.Entry<String, Object> entry : paramMap.entrySet()){
+            logger.info("key : " + entry.getKey() + " value : " + entry.getValue() + " value type : " + entry.getValue().getClass());
+        }
+
+
+        List<HistoryModel> modelList = historyService.historyList(paramMap);
+        int historyCnt = historyService.historyCnt(paramMap);
+
+        resultMap.put("historyList", modelList);
+        resultMap.put("historyCnt", historyCnt);
+        resultMap.put("currentPage", currentPage);
+        resultMap.put("pageSize", pageSize);
+
+        logger.info("+ end " + className + ".userHistoryList");
         return resultMap;
     }
 
@@ -127,6 +184,33 @@ public class RequestsController {
 
         logger.info("+ End " + className + ".detailHistory");
         return resultMap;
+    }
+
+    @RequestMapping("statusCodeList")
+    @ResponseBody
+    public List<Map<String, String>> statusCodeList() {
+        logger.info("+ Start " + className + ".statusCodeList");
+        List<String> list = historyService.statusCodeList();
+        
+        Set<Map<String, String>> mapList = new HashSet<>();
+        Map<String,String> resultMap = null;
+        
+        for (String s : list) {
+            resultMap = new HashMap<>();
+            if ("Y".equalsIgnoreCase(s)) {
+                resultMap.put("code","Y");
+                resultMap.put("value","승인");
+            } else if ("N".equalsIgnoreCase(s) || "R".equalsIgnoreCase(s)) {
+                resultMap.put("code","N");
+                resultMap.put("value","반려");
+            } else {
+                continue;
+            }
+            mapList.add(resultMap);
+        }
+        logger.info(">>>>> mapList " + mapList);
+        logger.info("+ End " + className + ".statusCodeList");
+        return new ArrayList<>(mapList);
     }
 
     @RequestMapping("deleteHistory")
