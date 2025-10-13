@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.happyjob.study.repository.asset.StatisticsMapper">
+    <select id = "statisticsByPeriod" resultType = "kr.happyjob.study.vo.asset.StatisticsModel">
+        /*kr.happy.study.asset.statistics.dao.statisticsDao.statisticsByPeriod*/
+        <choose>
+            <when test="period eq 'monthly'.toString()">
+                SELECT
+                MONTH(import_date) AS periodValue,
+                SUM(tbIn.quantity) AS amount
+                FROM
+                tb_product_info AS tbIn,
+                tb_product_import AS tbIm
+                WHERE
+                tbIm.product_no = tbIn.product_no
+                AND
+                YEAR(import_date) = #{year}
+                <if test="category != null and category != ''">
+                    AND
+                    tbIn.category_code = #{category}
+                </if>
+                GROUP BY MONTH(import_date)
+                ORDER BY periodValue;
+            </when>
+            <when test="period eq 'annual'.toString()">
+                SELECT
+                YEAR(import_date) AS periodValue,
+                SUM(tbIn.quantity) AS amount
+                FROM
+                tb_product_info AS tbIn,
+                tb_product_import AS tbIm
+                WHERE
+                tbIm.product_no = tbIn.product_no
+                <if test="category != null and category != ''">
+                    AND
+                    tbIn.category_code = #{category}
+                </if>
+                GROUP BY YEAR(import_date)
+                ORDER BY periodValue;
+            </when>
+        </choose>
+    </select>
+
+
+    <select id = "statisticCanUse" resultType = "kr.happyjob.study.vo.asset.StatisticsModel">
+        /*kr.happy.study.asset.statistics.dao.statisticsDao.statisticCanUse*/
+        <choose>
+            <when test="period eq 'monthly'.toString()">
+                SELECT
+                MONTH(import_date) AS periodValue,
+                SUM(tbIn.quantity) AS amount
+                FROM
+                tb_product_info AS tbIn,
+                tb_product_detail AS tbDt,
+                tb_product_import AS tbIm
+                WHERE
+                tbIn.product_no = tbDt.product_no
+                AND
+                tbIm.product_no = tbDt.product_no
+                AND
+                tbDt.product_state = 'Y'
+                AND
+                YEAR(import_date) = #{year}
+                <if test="category != null and category != ''">
+                    AND
+                    tbIn.category_code = #{category}
+                </if>
+                GROUP BY MONTH(import_date)
+                ORDER BY periodValue
+            </when>
+            <when test="period eq 'annual'.toString()">
+                SELECT
+                YEAR(import_date) AS periodValue,
+                SUM(tbIn.quantity) AS amount
+                FROM
+                tb_product_info AS tbIn,
+                tb_product_detail AS tbDt,
+                tb_product_import AS tbIm
+                WHERE
+                tbIn.product_no = tbDt.product_no
+                AND
+                tbIm.product_no = tbDt.product_no
+                AND
+                tbDt.product_state = 'Y'
+                <if test="category != null and category != ''">
+                    AND
+                    tbIn.category_code = #{category}
+                </if>
+                GROUP BY YEAR(import_date)
+                ORDER BY periodValue
+            </when>
+        </choose>
+    </select>
+
+    <select id="searchAnnualCategory" resultType="kr.happyjob.study.vo.asset.AnnualCategory">
+        /*kr.happy.study.asset.statistics.dao.statisticsDao.searchAnnualCategory*/
+        SELECT
+            tbCg.category_name AS name,
+            tbIn.category_code AS code,
+            SUM(tbIn.quantity) AS quantity
+        FROM
+            tb_product_info AS tbIn, tb_product_import AS tbIm, tb_category_code AS tbCg
+        WHERE tbIn.product_no = tbIm.product_no
+                  AND tbCg.category_code = tbIn.category_code
+                  AND YEAR(tbIm.import_date) = #{year}
+        GROUP BY tbIn.category_code
+    </select>
+
+    <select id="searchYear" resultType='int'>
+        /*kr.happy.study.asset.statistics.dao.statisticsDao.searchYear*/
+        SELECT
+            YEAR(import_date)
+        FROM
+            tb_product_import
+        GROUP BY YEAR(import_date)
+    </select>
+</mapper>
