@@ -180,6 +180,7 @@
             <if test='userType != null and "A".equals(userType)'>
                 <choose>
                     <when test="searchMajorSel != null and !searchMajorSel.equals('')">
+                        /* TEAM */
                         <if test="searchMajorSel != null and searchMajorSel.equals('team')">
                             <if test="searchSubSel != '미소속'">
                                 AND U.team LIKE CONCAT('%',#{searchSubSel},'%')
@@ -188,6 +189,7 @@
                                 AND U.team IS NULL
                             </if>
                         </if>
+                        /* NAME */
                         <if test="searchMajorSel != null and searchMajorSel.equals('name')">
                             <if test="searchSubSel != '미기재'">
                                 AND U.name LIKE CONCAT('%',#{searchSubSel},'%')
@@ -196,6 +198,7 @@
                                 AND U.name IS NULL
                             </if>
                         </if>
+                        /*ITProduct*/
                         <if test="searchMajorSel != null and searchMajorSel.equals('itProduct')">
                             <if test="searchSubSel != '없음'">
                                 AND CC.category_name LIKE CONCAT('%',#{searchSubSel},'%')
@@ -205,6 +208,7 @@
                                 AND CC.category_name IS NULL
                             </if>
                         </if>
+                        /*Status*/
                         <if test="searchMajorSel != null and searchMajorSel.equals('status')">
                             <if test="searchSubSel != '미판별'">
                                 <if test="searchSubSel_N != null and searchSubSel_R != null">

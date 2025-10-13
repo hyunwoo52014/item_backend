@@ -65,13 +65,12 @@ public class HistoryController {
         Map<String, Object> resultMap = new HashMap<>();
 
         String userType = String.valueOf(session.getAttribute("userType"));
-        = session.getAttributeNames();
-        logger.info("+ >>>>>> userType : " + userType);
         paramMap.put("userType", userType);
 
-        int currentPage = Integer.parseInt((String) paramMap.get("currentPage"));
+        int currentIndex = Integer.parseInt((String) paramMap.get("currentIndex"));
         int pageSize = Integer.parseInt((String) paramMap.get("pageSize"));
-        int pageIndex = (currentPage - 1) * pageSize;
+        int pageIndex = currentIndex * pageSize;
+
 
         paramMap.put("pageIndex", pageIndex);
         paramMap.put("pageSize", pageSize);
@@ -100,7 +99,7 @@ public class HistoryController {
 
         resultMap.put("historyList", modelList);
         resultMap.put("historyCnt", historyCnt);
-        resultMap.put("currentPage", currentPage);
+        resultMap.put("currentPage", currentIndex+1);
         resultMap.put("pageSize", pageSize);
 
         logger.info("+ end " + className + ".adminHistoryList");
@@ -120,9 +119,9 @@ public class HistoryController {
         paramMap.put("loginID", loginId);
         paramMap.put("userType", userType);
 
-        int currentPage = Integer.parseInt((String) paramMap.get("currentPage"));
+        int currentIndex = Integer.parseInt((String) paramMap.get("currentIndex"));
         int pageSize = Integer.parseInt((String) paramMap.get("pageSize"));
-        int pageIndex = (currentPage - 1) * pageSize;
+        int pageIndex = currentIndex * pageSize;
 
         paramMap.put("pageIndex", pageIndex);
         paramMap.put("pageSize", pageSize);
@@ -158,7 +157,7 @@ public class HistoryController {
 
         resultMap.put("historyList", modelList);
         resultMap.put("historyCnt", historyCnt);
-        resultMap.put("currentPage", currentPage);
+        resultMap.put("currentPage", currentIndex+1);
         resultMap.put("pageSize", pageSize);
 
         logger.info("+ end " + className + ".userHistoryList");
