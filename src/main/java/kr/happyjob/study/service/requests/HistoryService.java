@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service("HistoryService")
 public class HistoryService {
@@ -25,12 +26,20 @@ public class HistoryService {
         this.historymapper = historyMapper;
     }
 
+    public Set<String> subCategory(@RequestParam Map<String, Object> paramMap) {
+        return historymapper.subCategory(paramMap);
+    }
+
     public List<HistoryModel> historyList(@RequestParam Map<String, Object> paramMap) {
         return historymapper.historyList(paramMap);
     }
 
     public int historyCnt(@RequestParam Map<String, Object> paramMap) {
         return historymapper.historyCnt(paramMap);
+    }
+
+    public List<String> statusCodeList(){
+        return historymapper.statusCodeList();
     }
 
     public HistoryModel detailHistory(@RequestParam Map<String, Object> paramMap) {
