@@ -4,16 +4,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import kr.happyjob.study.service.returns.ReturnsService;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -59,26 +60,33 @@ public class ReturnsController {
         int pageSize = Integer.parseInt((String) paramMap.get("pageSize"));
         int pageIndex = (currentPage - 1) * pageSize;
 
-        String loginId = (String) paramMap.get("loginId");
+        //String loginId = (String) paramMap.get("loginId");
+        // 세션에서 안전하게 loginId를 가져옴
+        String loginId = (String) session.getAttribute("loginId");
 
         paramMap.put("currentPage", currentPage);
         paramMap.put("pageSize", pageSize);
         paramMap.put("pageIndex", pageIndex);
         paramMap.put("loginId", loginId);
 
+        // 현재 페이지 데이터 조회
         List<ReturnsModel> returnsList = returnsService.returnsList(paramMap);
-        int returnsCnt = returnsService.returnsCnt(paramMap);
+
+        // 전체 데이터 수 조회 (필터 적용 후 전체 수)
+        int totalCount = returnsService.getTotalCount(paramMap); // <- 전체 건수 조회하는 서비스 메서드 사용
+        //int returnsCnt = returnsService.returnsCnt(paramMap);
 
         // Map에 데이터를 담아 JSON으로 반환
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("returnsList", returnsList);
-        resultMap.put("totalCount", returnsCnt);
+        resultMap.put("totalCount", totalCount);  // 전체 건수 전달
+        //resultMap.put("totalCount", returnsCnt);
         resultMap.put("pageSize", pageSize);
         resultMap.put("currentPage", currentPage);
 
         logger.info("+ End " + className + ".returnsList");
         logger.info("returnsList" + returnsList);
-        /*testtest*/
+
         return resultMap; // Map 객체를 반환하면 JSON으로 자동 변환
     }
 
@@ -116,6 +124,90 @@ public class ReturnsController {
 
         return returnMap;
     }
+
+    /**
+     * 장비 개별 반납 신청
+     * 클라이언트 요청 경로: /requests/returns/returnOne
+     */
+    @RequestMapping("returnOne") // 새로운 API 경로 정의
+    @ResponseBody
+    public Map<String,Object> returnOne(Model model, @RequestParam Map<String, Object> paramMap,
+                                        HttpServletRequest request, HttpServletResponse response, HttpSession session) throws Exception {
+
+        logger.info("+ Start " + className + ".returnOne");
+        logger.info("    - paramMap : " + paramMap);
+
+        Map<String,Object> returnMap = new HashMap<String,Object>();
+        String result = "";
+        String resultMsg = "";
+
+        try {
+            int res = returnsService.returnOne(paramMap);
+
+            if (res > 0) {
+                result = "SUCCESS";
+                resultMsg = "반납 신청이 완료되었습니다.";
+            } else {
+                result = "FAIL";
+                resultMsg = "반납 신청에 실패하였습니다. (장비 상태가 '사용 중'이 아니거나 권한이 없습니다.)";
+            }
+        } catch (Exception e) {
+            logger.error("장비 개별 반납 신청 처리 중 오류 발생: " + e.toString());
+            result = "ERROR";
+            resultMsg = "반납 신청 처리 중 오류가 발생했습니다.";
+        }
+
+        returnMap.put("result", result);
+        returnMap.put("resultMsg", resultMsg);
+
+        logger.info("+ End " + className + ".returnOne");
+
+        return returnMap;
+    }
+
+
+    /**
+     * 장비 반납 신청 취소 (추가)
+     * 요청 경로: /requests/returns/cancelReturn
+     */
+    @RequestMapping("cancelReturn")
+    @ResponseBody
+    public Map<String,Object> cancelReturn(Model model, @RequestParam Map<String, Object> paramMap, HttpServletRequest request,
+                                           HttpServletResponse response, HttpSession session) throws Exception {
+
+        logger.info("+ Start " + className + ".cancelReturn");
+        logger.info("    - paramMap : " + paramMap);
+
+        Map<String,Object> returnMap = new HashMap<String,Object>();
+        String result = "";
+        String resultMsg = "";
+
+        // 클라이언트에서 'productDetailCode'와 'loginId'를 파라미터로 보내주어야 함
+        int res = returnsService.cancelReturn(paramMap);
+        logger.info("res =======>" + res);
+        if (res > 0) {
+            result = "SUCCESS";
+            resultMsg = "취소되었습니다."; // 알람창 메시지
+        } else {
+            result = "FAIL";
+            resultMsg = "취소 처리에 실패하였습니다. (이미 처리되었거나 권한이 없습니다.)";
+        }
+
+        returnMap.put("result", result);
+        returnMap.put("resultMsg", resultMsg);
+
+        logger.info("+ End " + className + ".cancelReturn");
+
+        return returnMap;
+    }
+
+    // 모달 상세 조회
+    @ResponseBody
+    @RequestMapping("stateDetail")
+    public ReturnsModel productStateDetail(@RequestParam Map<String, Object> paramMap) throws Exception {
+        return returnsService.selectProductStateDetail(paramMap);
+    }
+
 
 
 }

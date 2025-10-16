@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace = "kr.happyjob.study.repository.requests.ApplyMapper">
+
+    <!-- 사용신청 목록조회  -->
+    <select id = "applyList" resultType="kr.happyjob.study.vo.requests.ApplyModel">
+        /*kr.happyjob.study.requests.apply.model.ApplyModel.applyList*/
+        SELECT
+            D.product_detail_code,
+            I.product_name,
+            D.category_code,
+            D.product_state,
+            CD.category_name
+        FROM
+            tb_product_detail D
+        JOIN
+            tb_product_info I
+        ON
+            D.product_no = I.product_no
+        JOIN
+            tb_category_code CD
+        ON
+            CD.category_code = D.category_code
+        <where>
+            <if test="(search != null) and (!search.equals(''))" >
+                and I.product_name Like CONCAT('%', #{search}, '%')
+            </if>
+            <if test="(categoryCode != null) and (!categoryCode.equals(''))">
+                and D.category_code = #{categoryCode}
+            </if>
+            <if test="(statusCode != null) and (!statusCode.equals(''))">
+                and D.product_state = #{statusCode}
+            </if>
+        </where>
+        ORDER BY D.product_detail_code
+        LIMIT #{pageIndex}, #{pageSize}
+    </select>
+
+    <!-- 사용신청 목록 총 갯수 조회 -->
+    <select id="applyCnt" resultType="int">
+        /*kr.happyjob.study.vo.requests.ApplyModel.applyCnt*/
+        SELECT
+            COUNT(*)
+        FROM
+            tb_product_detail D
+        JOIN
+            tb_product_info I
+        ON
+            D.product_no = I.product_no
+        JOIN
+            tb_category_code CD
+        ON
+            CD.category_code = D.category_code
+        <where>
+            <if test="(search != null) and (!search.equals(''))" >
+                and I.product_name Like CONCAT('%', #{search}, '%')
+            </if>
+            <if test="(categoryCode != null) and (!categoryCode.equals(''))">
+                and D.category_code = #{categoryCode}
+            </if>
+            <if test="(statusCode != null) and (!statusCode.equals(''))">
+                and D.product_state = #{statusCode}
+            </if>
+        </where>
+    </select>
+
+    <!-- 사용 상세 조회 -->
+    <select id="applyDetail" resultType="kr.happyjob.study.vo.requests.ApplyModel">
+        /*kr.happyjob.study.vo.requests.ApplyModel.applyDetail*/
+        SELECT
+            P.product_name,
+            D.category_code,
+            D.product_detail_code,
+            U.name,
+            D.order_date AS orderDate,
+            D.rental_date AS rentalDate,
+            D.order_reason
+        FROM tb_product_detail D
+        LEFT JOIN tb_userinfo U ON U.loginID = D.loginID
+        JOIN tb_product_info P ON D.product_no = P.product_no
+        WHERE D.product_detail_code = #{product_detail_code}
+          AND D.category_code = #{category_code}
+    </select>
+
+    <!-- 사용 신청  -->
+    <update id="applyReq">
+        /*kr.happyjob.study.vo.requests.ApplyModel.applyReq*/
+        UPDATE
+            tb_product_detail
+        SET
+            loginID = #{loginID},
+            order_date = #{order_date},
+            order_reason = #{order_reason},
+            product_state = 'O'
+        WHERE
+            category_code = #{category_code}
+            AND product_detail_code = #{product_detail_code}
+            AND product_state = 'N'
+    </update>
+
+    <!-- 반납 신청  -->
+    <update id="applyReturn">
+        /*kr.happyjob.study.vo.requests.ApplyModel.applyReturn*/
+        UPDATE
+            tb_product_detail
+        SET
+            product_state = 'R'
+        WHERE
+            category_code = #{category_code}
+            AND product_detail_code = #{product_detail_code}
+            AND product_state = 'Y'
+    </update>
+
+    <!-- 신청 & 반납 취소  -->
+    <update id="applyCancel">
+        /*kr.happyjob.study.vo.requests.ApplyModel.applyCancel*/
+        UPDATE
+            tb_product_detail
+        <set>
+            loginID = CASE
+                WHEN product_state = 'O' THEN NULL
+                ELSE loginID
+            END,
+            order_date = CASE
+                WHEN product_state = 'O' THEN NULL
+                ELSE order_date
+            END,
+            order_reason = CASE
+                WHEN product_state = 'O' THEN NULL
+                ELSE order_reason
+            END,
+            product_state = CASE
+                WHEN product_state = 'O' THEN 'N'
+                WHEN product_state = 'R' THEN 'Y'
+                ELSE product_state
+            END
+        </set>
+        WHERE
+            category_code = #{category_code}
+            AND product_detail_code = #{product_detail_code}
+            AND product_state IN ('O', 'R')
+    </update>
+
+    <!-- 카테고리 목록 조회 -->
+    <select id="getCategories" resultType="Map">
+        /*kr.happyjob.study.vo.requests.ApplyModel.getCategories*/
+        SELECT
+            category_code,
+            category_name
+        FROM
+            tb_category_code
+        ORDER BY
+            category_code
+    </select>
+</mapper>

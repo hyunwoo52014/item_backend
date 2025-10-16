@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.happyjob.study.repository.rentalList.RentalListMapper">
+
+    <select id = "rentalList" resultType = "kr.happyjob.study.vo.rentalList.RentalListModel">
+        SELECT
+        p.category_code,
+        p.product_detail_code,
+        c.category_name,
+        i.product_name,
+        u.team,
+        d.detail_name,
+        u.name
+
+        FROM tb_product_detail p
+        INNER JOIN tb_userinfo u  ON p.loginID = u.loginID
+        INNER JOIN tb_category_code c ON p.category_code = c.category_code
+        INNER JOIN tb_product_info i ON p.product_no = i.product_no
+        INNER JOIN tb_detail_code d ON p.product_state = d.detail_code
+
+        <where>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                AND CONCAT(p.category_code,' - ',p.product_detail_code) LIKE CONCAT('%', #{searchKeyword}, '%')
+            </if>
+        </where>
+
+        ORDER BY p.product_detail_code
+    </select>
+
+    <!-- 대여 현황 카운트 조회 -->
+    <select id="rentalListCnt" resultType="int">
+        SELECT COUNT(*)
+        FROM tb_product_detail p
+        INNER JOIN tb_my_rental r ON p.product_detail_code = r.product_detail_code
+        INNER JOIN tb_userinfo u ON r.loginID = u.loginID
+        <where>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                AND CONCAT(p.category_code,'-',p.product_detail_code) LIKE CONCAT('%', #{searchKeyword}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

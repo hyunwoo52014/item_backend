@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.happyjob.study.repository.approvals.ApprovalsMapper">
+
+<!-- (관리자) 신청/반납 > 결재 부분 : 전체 목록 select   -->
+<select id="getApprovalsList" resultType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+    select pd.category_code,pd.product_detail_code,ui.loginID,ui.name, pinfo.product_name,pd.order_date, pd.product_state, pd.order_reason, pd.approve
+    from tb_product_detail pd
+    left outer join tb_userinfo ui on pd.loginID = ui.loginID
+    left outer join tb_product_info pinfo on pd.product_no = pinfo.product_no
+    where product_state='R' or product_state='O'
+    ;
+</select>
+
+<!-- (관리자) 신청/반납 > 결재 부분 : Pagination을 위한 총 column 수 반환 -->
+<select id="getTotalApprovalCnt" resultType="int">
+    select count(*) from tb_product_detail
+    where product_state='R' or product_state='O'
+    ;
+</select>
+
+<!--  (사용 요청일 경우) 관리자 [사용 요청] [승인] 버튼 눌렀을 때 동작   -->
+<update id="updateProductDetailOnApprove" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+    update tb_product_detail
+    set rental_date=CURRENT_DATE, order_reason=null, product_state='Y', approve='Y'
+    where category_code=#{category_code} and product_detail_code=#{product_detail_code};
+</update>
+<update id="updateUseHistoryOnApprove" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+    update tb_use_history
+    set rental_date=current_date, product_state='Y'
+    where loginId=#{loginID} and category_code=#{category_code} and product_detail_code=#{product_detail_code} and product_state='O';
+</update>
+<!-- 지금 db 가데이터가 이상해서 필요함. -->
+<insert id="insertUseHistoryOnApprove" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+    insert into tb_use_history(usage_code, category_code, product_detail_code, loginID, rental_date, name, productNo, productName, product_state)
+    values (#{usage_code},#{category_code},#{product_detail_code},#{loginID},CURRENT_DATE,#{name},#{product_no},#{product_name},#{approve});
+</insert>
+
+<!--  (사용 요청일 경우) 관리자 [사용 요청] [거절] 버튼 눌렀을 때 동작   -->
+<update id="updateProductDetailOnReject" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+    update tb_product_detail
+    set rental_date=null, product_state='N', approve='N'
+    where category_code=#{category_code} and product_detail_code=#{product_detail_code};
+</update>
+<update id="updateUseHistoryOnReject" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+    update tb_use_history
+    set  rental_date=null, product_state='N'
+    where loginId=#{loginID} and category_code=#{category_code} and product_detail_code=#{product_detail_code} and product_state='O';
+</update>
+
+<!-- tb_use_history 부분에서 해당 제품이 몇 번 사용 되었는지 확인 -->
+<select id="getUsageCodeCount" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO" resultType="int">
+    select count(*) from tb_use_history
+    where category_code=#{category_code} and product_detail_code=#{product_detail_code};
+</select>
+
+
+<!-- (반납 요청일 경우) 관리자 [반납 요청] [승인] 버튼 눌렀을 때 동작   -->
+<update id="updateProductDetailOnReturn" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+    update tb_product_detail
+    set loginID=null, order_date=null, rental_date=null, return_date=null, order_reason=null, product_state='N', approve='Y'
+    where category_code=#{category_code} and product_detail_code=#{product_detail_code};
+</update>
+
+<update id="updateUseHistoryOnReturn" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+    update tb_use_history
+    set return_date = CURRENT_DATE,
+        product_state='N'
+    where loginID=#{loginID} and category_code=#{category_code} and product_detail_code=#{product_detail_code} and product_state='R';
+</update>
+
+<!-- (반납 요청일 경우) 관리자 [반납 요청] [거절] 버튼 눌렀을 때 동작   -->
+<update id="updateProductDetailOnReturnReject" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+    update tb_product_detail
+    set return_date=null, product_state='Y', approve='N'
+    where category_code=#{category_code} and product_detail_code=#{product_detail_code};
+</update>
+
+<update id="updateUseHistoryOnReturnReject" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+    update tb_use_history
+    set return_date=null, product_state='Y'
+    where loginID=#{loginID} and category_code=#{category_code} and product_detail_code=#{product_detail_code} and product_state='R';
+</update>
+
+<!-- 지금 db 가데이터가 이상해서 필요함. -->
+<insert id="insertUseHistoryOnRejectYes" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+    insert into tb_use_history(usage_code, category_code, product_detail_code, loginID, rental_date, return_date,name, productNo, productName, product_state)
+    values (#{usage_code},#{category_code},#{product_detail_code},#{loginID},CURRENT_DATE,CURRENT_DATE,#{name},#{product_no},#{product_name},'N');
+</insert>
+<insert id="insertUseHistoryOnRejectNo" parameterType="kr.happyjob.study.vo.approvals.ApprovalsVO">
+    insert into tb_use_history(usage_code, category_code, product_detail_code, loginID, rental_date, return_date,name, productNo, productName, product_state)
+    values (#{usage_code},#{category_code},#{product_detail_code},#{loginID},CURRENT_DATE,null,#{name},#{product_no},#{product_name},'N');
+</insert>
+
+
+<!--    -->
+<!--  검색 기능  -->
+<select id="selectSearchList" parameterType="kr.happyjob.study.vo.approvals.ApprovalSearchVO" resultType="kr.happyjob.study.vo.approvals.ApprovalsVO" >
+    select pd.category_code,pd.product_detail_code,ui.loginID,ui.name, pinfo.product_name,pd.order_date, pd.product_state, pd.order_reason, pd.approve
+    from tb_product_detail pd
+    left outer join tb_userinfo ui on pd.loginID = ui.loginID
+    left outer join tb_product_info pinfo on pd.product_no = pinfo.product_no
+    where (product_state='R' or product_state='O')
+    <choose>
+        <when test="searchStr == 'itCode'">
+                AND pd.category_code=#{category_code} AND pd.product_detail_code=#{product_detail_code}
+        </when>
+        <when test="searchStr == 'name'">
+            AND ui.name=#{searchWordStr}
+        </when>
+        <when test="searchStr =='requestDate'">
+            AND pd.order_date=#{searchWordStr}
+        </when>
+        <otherwise>
+
+        </otherwise>
+    </choose>
+    ;
+</select>
+
+</mapper>

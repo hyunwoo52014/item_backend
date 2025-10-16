@@ -3,14 +3,14 @@ package kr.happyjob.study.service.Usermgr;
 import kr.happyjob.study.common.comnUtils.FileUtilCho;
 import kr.happyjob.study.repository.usermgr.UsermgrreactMapper;
 import kr.happyjob.study.vo.usermgr.UserModel;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
